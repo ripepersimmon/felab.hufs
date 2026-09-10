@@ -17,13 +17,23 @@
 <link rel="icon" type="image/png" href="images/favicon-32.png" sizes="32x32">
 <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
 <link rel="alternate" type="application/rss+xml" title="Financial Engineering Lab. — Blog" href="feed.xml">
-<link rel="stylesheet" href="style.css?v=e2fda544">
+<link rel="stylesheet" href="style.css?v=0af6eabe">
 <style>
 #yf-2026:checked ~ .cards .card:not(.y2026) { display: none; }
 #yf-2026:checked ~ .filters label[for="yf-2026"] { background: #0B3D6E; color: #fff; border-color: #0B3D6E; }
 #yf-2025:checked ~ .cards .card:not(.y2025) { display: none; }
 #yf-2025:checked ~ .filters label[for="yf-2025"] { background: #0B3D6E; color: #fff; border-color: #0B3D6E; }
 #yf-all:checked ~ .filters label[for="yf-all"] { background: #0B3D6E; color: #fff; border-color: #0B3D6E; }
+#cf-award:checked ~ .cards .card:not(.c-award) { display: none; }
+#cf-award:checked ~ .filters label[for="cf-award"] { background: #0B3D6E; color: #fff; border-color: #0B3D6E; }
+#cf-conference:checked ~ .cards .card:not(.c-conference) { display: none; }
+#cf-conference:checked ~ .filters label[for="cf-conference"] { background: #0B3D6E; color: #fff; border-color: #0B3D6E; }
+#cf-milestone:checked ~ .cards .card:not(.c-milestone) { display: none; }
+#cf-milestone:checked ~ .filters label[for="cf-milestone"] { background: #0B3D6E; color: #fff; border-color: #0B3D6E; }
+#cf-all:checked ~ .filters label[for="cf-all"] { background: #0B3D6E; color: #fff; border-color: #0B3D6E; }
+#yf-2026:checked ~ #cf-award:checked ~ .empty { display: block; }
+#yf-2025:checked ~ #cf-conference:checked ~ .empty { display: block; }
+#yf-2025:checked ~ #cf-milestone:checked ~ .empty { display: block; }
 </style>
 </head>
 <body>
@@ -48,12 +58,19 @@
 	<div class="section blog">
 		<h2>Blog</h2>
 		<p class="blog-intro">Photos and short notes from lab life: conferences, seminars, gatherings, and small milestones.</p>
-		<input class="yfilter" type="radio" name="year" id="yf-2026">
-		<input class="yfilter" type="radio" name="year" id="yf-2025">
-		<input class="yfilter" type="radio" name="year" id="yf-all" checked>
-		<p class="filters"><label for="yf-all">All</label><label for="yf-2026">2026</label><label for="yf-2025">2025</label></p>
+		<input class="bfilter" type="radio" name="year" id="yf-2026">
+		<input class="bfilter" type="radio" name="year" id="yf-2025">
+		<input class="bfilter" type="radio" name="year" id="yf-all" checked>
+		<input class="bfilter" type="radio" name="cat" id="cf-award">
+		<input class="bfilter" type="radio" name="cat" id="cf-conference">
+		<input class="bfilter" type="radio" name="cat" id="cf-milestone">
+		<input class="bfilter" type="radio" name="cat" id="cf-all" checked>
+		<div class="filters">
+			<p class="filter-row"><span class="filter-label">Year</span><label for="yf-all">All</label><label for="yf-2026">2026</label><label for="yf-2025">2025</label></p>
+			<p class="filter-row"><span class="filter-label">Category</span><label for="cf-all">All</label><label for="cf-award">🏆 Award</label><label for="cf-conference">🎓 Conference</label><label for="cf-milestone">🎊 Milestone</label></p>
+		</div>
 		<div class="cards">
-			<a class="card y2026" href="blog/2026-09-website.html">
+			<a class="card y2026 c-milestone" href="blog/2026-09-website.html">
 				<div class="thumb"><img src="images/blog/260910/260910.png" alt="Lab website goes live" loading="lazy"></div>
 				<div class="card-body">
 					<p class="card-meta"><span class="tag">🎊 Milestone</span><time>September 10, 2026</time></p>
@@ -63,7 +80,7 @@
 					<p class="card-foot"><span>Yongin</span><span class="more">Details &rarr;</span></p>
 				</div>
 			</a>
-			<a class="card y2026" href="blog/2026-06-kiie.html">
+			<a class="card y2026 c-conference" href="blog/2026-06-kiie.html">
 				<div class="thumb"><img src="images/blog/26060304/lab-group.jpg" alt="2026 춘계공동학술대회 참가" loading="lazy"></div>
 				<div class="card-body">
 					<p class="card-meta"><span class="tag">🎓 Conference</span><time>June 4, 2026</time></p>
@@ -73,7 +90,7 @@
 					<p class="card-foot"><span>경주 화백컨벤션센터 (HICO)</span><span class="more">Details &rarr;</span></p>
 				</div>
 			</a>
-			<a class="card y2025" href="blog/2025-11-award.html">
+			<a class="card y2025 c-award" href="blog/2025-11-award.html">
 				<div class="thumb"><img src="images/blog/251106/nicekoo.jpg" alt="구현모 학부연구생, 학과특성화 프로그램 학생연구 최우수상" loading="lazy"></div>
 				<div class="card-body">
 					<p class="card-meta"><span class="tag">🏆 Award</span><time>November 6, 2025</time></p>
@@ -84,6 +101,7 @@
 				</div>
 			</a>
 		</div>
+		<p class="empty">No posts match this filter.</p>
 	</div>
 
 	<div id="footer">

@@ -804,9 +804,9 @@ details.bib > pre {
 	word-break: break-word;
 }
 
-/* Blog year filter. The radios stay in the DOM (off-screen, not display:none)
+/* Blog filters. The radios stay in the DOM (off-screen, not display:none)
    so they can still be reached with the keyboard. */
-.yfilter {
+.bfilter {
 	position: absolute;
 	opacity: 0;
 	width: 0;
@@ -815,10 +815,24 @@ details.bib > pre {
 }
 
 .filters {
+	margin: 0 0 24px;
+}
+
+.filter-row {
 	display: flex;
 	flex-wrap: wrap;
+	align-items: center;
 	gap: 8px;
-	margin: 0 0 24px;
+	margin: 0 0 8px;
+}
+
+.filter-label {
+	width: 72px;
+	flex: 0 0 auto;
+	font-size: 0.78em;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+	color: #777;
 }
 
 .filters label {
@@ -837,7 +851,19 @@ details.bib > pre {
 	color: #0B3D6E;
 }
 
-.yfilter:focus-visible ~ .filters label {
+.bfilter:focus-visible ~ .filters label {
 	outline: 2px solid #0B3D6E;
 	outline-offset: 2px;
+}
+
+/* Shown only for the year/category pairs that match nothing (see build.js). */
+.blog .empty {
+	display: none;
+	color: #777;
+	font-size: 0.95em;
+	padding: 8px 0 24px;
+}
+
+@media (max-width: 640px) {
+	.filter-label { width: 100%; }
 }

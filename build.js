@@ -493,6 +493,9 @@ function pageNews(data) {
 
 // Blog ---------------------------------------------------------------------
 
+// Safe id / class fragment built from a category key.
+function cls(s) { return String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'x'; }
+
 function slug(s) {
   return String(s).toLowerCase().replace(/[^a-z0-9가-힣]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'post';
 }
@@ -525,7 +528,7 @@ function postCard(p, cats) {
   const thumb = photos.length
     ? `<img src="${esc(photos[0].url)}" alt="${esc(p.title)}" loading="lazy">`
     : `<div class="thumb-blank">${c.icon || ''}</div>`;
-  return `\t\t\t<a class="card y${esc(String(p.date || '').slice(0, 4))}" href="blog/${esc(id)}.html">
+  return `\t\t\t<a class="card y${esc(String(p.date || '').slice(0, 4))} c-${cls(p.type)}" href="blog/${esc(id)}.html">
 \t\t\t\t<div class="thumb">${thumb}</div>
 \t\t\t\t<div class="card-body">
 \t\t\t\t\t<p class="card-meta">${catChip(cats, p.type)}<time>${dateLong(p.date)}</time></p>
@@ -541,31 +544,72 @@ function pageBlog(data) {
   const cats = data.blogCategories || {};
   const posts = (data.blog || []).slice().sort((a, b) => (b.date || '').localeCompare(a.date || ''));
   const intro = (s.blog && s.blog.intro) ? `\t\t<p class="blog-intro">${s.blog.intro}</p>\n` : '';
-  const yrs = [...new Set(posts.map(p => (p.date || '').slice(0, 4)))];
-  // The years are data, so the rules that pair each button with its cards have
-  // to be generated. Everything that does not depend on the years lives in
-  // style.css.
-  const filterCss = yrs.length > 1 ? yrs.map(y =>
-    `#yf-${y}:checked ~ .cards .card:not(.y${y}) { display: none; }\n` +
-    `#yf-${y}:checked ~ .filters label[for="yf-${y}"] { background: #0B3D6E; color: #fff; border-color: #0B3D6E; }\n`
-  ).join('') + `#yf-all:checked ~ .filters label[for="yf-all"] { background: #0B3D6E; color: #fff; border-color: #0B3D6E; }\n` : '';
-  let h = head(s, 'Blog', { desc: (s.blog && s.blog.intro) || '', path: 'blog.html', style: filterCss });
+
+  // Two filters: by year and by category. Both are radio groups, and because
+  // each one only ever hides cards, picking one from each intersects for free.
+  // A filter with a single value would do nothing, so it is left out.
+  const years = [...new Set(posts.map(p => (p.date || '').slice(0, 4)))].filter(Boolean);
+  const types = Object.keys(cats).filter(t => posts.some(p => p.type === t));
+  const byYear = years.length > 1;
+  const byType = types.length > 1;
+  const ON = 'background: #0B3D6E; color: #fff; border-color: #0B3D6E;';
+
+  // The values are data, so the rules pairing each button with its cards have
+  // to be generated here. Everything that does not depend on them is in style.css.
+  const css = [];
+  for (const y of (byYear ? years : [])) {
+    css.push(`#yf-${y}:checked ~ .cards .card:not(.y${y}) { display: none; }`);
+    css.push(`#yf-${y}:checked ~ .filters label[for="yf-${y}"] { ${ON} }`);
+  }
+  if (byYear) css.push(`#yf-all:checked ~ .filters label[for="yf-all"] { ${ON} }`);
+  for (const t of (byType ? types : [])) {
+    css.push(`#cf-${cls(t)}:checked ~ .cards .card:not(.c-${cls(t)}) { display: none; }`);
+    css.push(`#cf-${cls(t)}:checked ~ .filters label[for="cf-${cls(t)}"] { ${ON} }`);
+  }
+  if (byType) css.push(`#cf-all:checked ~ .filters label[for="cf-all"] { ${ON} }`);
+  // A year and a category together can match nothing. Which pairs those are is
+  // known at build time, so each gets its own rule and the reader gets a line
+  // of text instead of a blank space.
+  if (byYear && byType) {
+    for (const y of years) {
+      for (const t of types) {
+        if (!posts.some(p => (p.date || '').slice(0, 4) === y && p.type === t)) {
+          css.push(`#yf-${y}:checked ~ #cf-${cls(t)}:checked ~ .empty { display: block; }`);
+        }
+      }
+    }
+  }
+
+  let h = head(s, 'Blog', {
+    desc: (s.blog && s.blog.intro) || '',
+    path: 'blog.html',
+    style: css.length ? css.join('\n') + '\n' : '',
+  });
   h += `
 \t<div class="section blog">
 \t\t<h2>${esc((s.blog && s.blog.label) || 'Blog')}</h2>
 ${intro}`;
-  if (!posts.length) h += `\t\t<p>No posts yet.</p>\n`;
-  const years = [...new Set(posts.map(p => (p.date || '').slice(0, 4)))];
-  // Year filter. Radio inputs plus sibling selectors, so filtering needs no
-  // JavaScript; with CSS off every post simply stays visible.
-  if (years.length > 1) {
-    h += years.map(y => `\t\t<input class="yfilter" type="radio" name="year" id="yf-${y}">`).join('\n') + '\n';
-    h += `\t\t<input class="yfilter" type="radio" name="year" id="yf-all" checked>\n`;
-    h += `\t\t<p class="filters"><label for="yf-all">All</label>${years.map(y => `<label for="yf-${y}">${y}</label>`).join('')}</p>\n`;
+  if (!posts.length) return h + `\t\t<p>No posts yet.</p>\n\t</div>\n` + foot(s);
+
+  // The inputs come first: the rules above reach the buttons and the cards
+  // through the sibling combinator, so both have to follow the inputs.
+  const rows = [];
+  if (byYear) {
+    h += years.map(y => `\t\t<input class="bfilter" type="radio" name="year" id="yf-${y}">`).join('\n') + '\n';
+    h += `\t\t<input class="bfilter" type="radio" name="year" id="yf-all" checked>\n`;
+    rows.push(`\t\t\t<p class="filter-row"><span class="filter-label">Year</span><label for="yf-all">All</label>` +
+      years.map(y => `<label for="yf-${y}">${y}</label>`).join('') + `</p>`);
   }
-  if (posts.length) {
-    h += `\t\t<div class="cards">\n${posts.map(p => postCard(p, cats)).join('\n')}\n\t\t</div>\n`;
+  if (byType) {
+    h += types.map(t => `\t\t<input class="bfilter" type="radio" name="cat" id="cf-${cls(t)}">`).join('\n') + '\n';
+    h += `\t\t<input class="bfilter" type="radio" name="cat" id="cf-all" checked>\n`;
+    rows.push(`\t\t\t<p class="filter-row"><span class="filter-label">Category</span><label for="cf-all">All</label>` +
+      types.map(t => `<label for="cf-${cls(t)}">${cats[t].icon ? cats[t].icon + ' ' : ''}${esc(cats[t].name || t)}</label>`).join('') + `</p>`);
   }
+  if (rows.length) h += `\t\t<div class="filters">\n${rows.join('\n')}\n\t\t</div>\n`;
+
+  h += `\t\t<div class="cards">\n${posts.map(p => postCard(p, cats)).join('\n')}\n\t\t</div>\n`;
+  if (byYear && byType) h += `\t\t<p class="empty">No posts match this filter.</p>\n`;
   h += `\t</div>\n`;
   return h + foot(s);
 }
