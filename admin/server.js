@@ -292,5 +292,8 @@ const server = http.createServer((req, res) => {
 server.listen(config.port, config.host, () => {
   console.log(`Site preview:  http://${config.host}:${config.port}/`);
   console.log(`Admin page:    http://${config.host}:${config.port}/admin`);
+  if (checkPassword(DEFAULT_PASSWORD)) {
+    console.log(`WARNING: the admin password is still the initial "${DEFAULT_PASSWORD}". Change it in the Password tab.`);
+  }
   console.log('Press Ctrl+C to stop.');
 });

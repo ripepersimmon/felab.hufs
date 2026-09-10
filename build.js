@@ -23,10 +23,14 @@ const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
   'August', 'September', 'October', 'November', 'December'];
 
 // Short hash of style.css so browsers fetch a fresh copy whenever it changes.
+// Recomputed at the start of every build(), since the admin server keeps one
+// process running across many builds.
 let CSS_VERSION = '';
-try {
-  CSS_VERSION = require('crypto').createHash('sha1').update(fs.readFileSync(path.join(ROOT, 'style.css'))).digest('hex').slice(0, 8);
-} catch (e) { CSS_VERSION = String(Date.now()); }
+function cssVersion() {
+  try {
+    return require('crypto').createHash('sha1').update(fs.readFileSync(path.join(ROOT, 'style.css'))).digest('hex').slice(0, 8);
+  } catch (e) { return String(Date.now()); }
+}
 
 const esc = s => String(s == null ? '' : s)
   .replace(/&(?![a-z#0-9]+;)/gi, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -38,13 +42,14 @@ const LINK_ICONS = {
   website: '<svg viewBox="0 0 24 24" width="18" height="18" aria-label="Website"><path fill="currentColor" d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm6.9 6h-3a15.5 15.5 0 0 0-1.4-3.6A8 8 0 0 1 18.9 8zM12 4c.8 1.2 1.5 2.5 1.9 4h-3.8c.4-1.5 1.1-2.8 1.9-4zM4.3 14a8 8 0 0 1 0-4h3.4a16 16 0 0 0 0 4H4.3zm.8 2h3a15.5 15.5 0 0 0 1.4 3.6A8 8 0 0 1 5.1 16zm3-8h-3a8 8 0 0 1 4.4-3.6C8.9 5.5 8.4 6.7 8.1 8zM12 20c-.8-1.2-1.5-2.5-1.9-4h3.8c-.4 1.5-1.1 2.8-1.9 4zm2.3-6H9.7a14 14 0 0 1 0-4h4.6a14 14 0 0 1 0 4zm.2 5.6c.6-1.1 1.1-2.3 1.4-3.6h3a8 8 0 0 1-4.4 3.6zm1.8-5.6a16 16 0 0 0 0-4h3.4a8 8 0 0 1 0 4h-3.4z"/></svg>',
 };
 
+const LINK_NAMES = { linkedin: 'LinkedIn', github: 'GitHub', scholar: 'Google Scholar', website: 'Website' };
+
 function linksHtml(links) {
   if (!links || !links.length) return '';
   const a = links.map(l => {
     const icon = LINK_ICONS[l.type] || LINK_ICONS.website;
-    const names = { linkedin: 'LinkedIn', github: 'GitHub', scholar: 'Google Scholar', website: 'Website' };
-    const title = names[l.type] || 'Link';
-    return `<a href="${esc(l.url)}" target="_blank" title="${esc(title)}">${icon}</a>`;
+    const title = LINK_NAMES[l.type] || 'Link';
+    return `<a href="${esc(l.url)}" target="_blank" rel="noopener" title="${esc(title)}">${icon}</a>`;
   }).join('');
   return `<p class="links">${a}</p>`;
 }
@@ -130,7 +135,7 @@ function foot(site) {
   const f = site.footer;
   return `
 \t<div id="footer">
-\t\t<div class="footer-logo"><a href="${esc(f.logoUrl)}" target="_blank"><img src="${esc(f.logo)}" alt="Hankuk University of Foreign Studies"></a></div>
+\t\t<div class="footer-logo"><a href="${esc(f.logoUrl)}" target="_blank" rel="noopener"><img src="${esc(f.logo)}" alt="Hankuk University of Foreign Studies"></a></div>
 \t\t<div class="footer-text">
 \t\t\t<p>${f.lines.join('<br>\n\t\t\t')}<br>
 \t\t\tEmail. <a href="mailto:${esc(f.email)}">${esc(f.email)}</a></p>
@@ -174,9 +179,9 @@ function citeCount(p, cites) {
 function pubLi(p, data, cites) {
   const venue = p.type === 'thesis' ? p.venue : `<i>${p.venue}</i>`;
   const note = p.note ? ` (${p.note})` : '';
-  const links = (p.links || []).map(l => ` [<a href="${esc(l.url)}" target="_blank">${esc(l.label || 'paper')}</a>]`).join('');
+  const links = (p.links || []).map(l => ` [<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label || 'paper')}</a>]`).join('');
   const c = citeCount(p, cites);
-  const cited = c ? ` <span class="cited">Cited by <a href="${esc(c.url)}" target="_blank">${c.count}</a></span>` : '';
+  const cited = c ? ` <span class="cited">Cited by <a href="${esc(c.url)}" target="_blank" rel="noopener">${c.count}</a></span>` : '';
   const bib = `<details class="bib"><summary>bib</summary><pre>${esc(bibEntry(p))}</pre></details>`;
   return `<li>${authorsHtml(p.authors, data)} (${p.year}). ${p.title}. ${venue}${note}.${links}${cited}${bib}</li>`;
 }
@@ -621,8 +626,8 @@ function pagePost(data, p) {
   const chip = catChip(cats, p.type);
   if (chip) meta.push(chip);
   if (p.location) meta.push(esc(p.location));
-  const photos0 = (p.photos || []).filter(x => x && x.url);
-  let h = head(s, 'Blog', { base: '../', docTitle: stripTags(p.title), desc: postSummary(p), path: `blog/${postId(p)}.html`, image: photos0.length ? photos0[0].url : null, type: 'article' });
+  const photos = (p.photos || []).filter(x => x && x.url);
+  let h = head(s, 'Blog', { base: '../', docTitle: stripTags(p.title), desc: postSummary(p), path: `blog/${postId(p)}.html`, image: photos.length ? photos[0].url : null, type: 'article' });
   h += `
 \t<div class="section blog">
 \t\t<p class="crumb"><a href="blog.html">&larr; ${esc((s.blog && s.blog.label) || 'Blog')}</a></p>
@@ -630,11 +635,10 @@ function pagePost(data, p) {
 \t\t\t<p class="post-meta">${meta.join(' &middot; ')}</p>
 \t\t\t<h2 class="post-title">${p.title}</h2>
 ${p.titleKr ? `\t\t\t<p class="post-kr">${p.titleKr}</p>\n` : ''}${p.text ? `\t\t\t<div class="post-body">${p.text}</div>\n` : ''}`;
-  const photos = photos0;
   if (photos.length) {
     h += `\t\t\t<div class="gallery n${Math.min(photos.length, 3)}">\n`;
     for (const ph of photos) {
-      h += `\t\t\t\t<figure><a href="${esc(ph.url)}" target="_blank"><img src="${esc(ph.url)}" alt="${esc(ph.caption || p.title)}" loading="lazy"></a>${ph.caption ? `<figcaption>${ph.caption}</figcaption>` : ''}</figure>\n`;
+      h += `\t\t\t\t<figure><a href="${esc(ph.url)}" target="_blank" rel="noopener"><img src="${esc(ph.url)}" alt="${esc(ph.caption || p.title)}" loading="lazy"></a>${ph.caption ? `<figcaption>${ph.caption}</figcaption>` : ''}</figure>\n`;
     }
     h += `\t\t\t</div>\n`;
   }
@@ -657,7 +661,7 @@ function rfc822(date) {
   return new Date(Date.UTC(y, (m || 1) - 1, d || 1, 9)).toUTCString();
 }
 
-function feedXml(data, postFiles) {
+function feedXml(data) {
   const s = data.site;
   const posts = (data.blog || []).slice().sort((a, b) => (b.date || '').localeCompare(a.date || ''));
   const items = posts.map(p => `\t<item>
@@ -701,7 +705,7 @@ function robotsTxt(data) {
 }
 
 function build() {
-  try { CSS_VERSION = require('crypto').createHash('sha1').update(fs.readFileSync(path.join(ROOT, 'style.css'))).digest('hex').slice(0, 8); } catch (e) {}
+  CSS_VERSION = cssVersion();
   const data = JSON.parse(fs.readFileSync(DATA, 'utf8'));
   // Citation counts are refreshed separately (fetch-citations.js) and are optional.
   try { data.citations = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'citations.json'), 'utf8')).works; } catch (e) { data.citations = null; }

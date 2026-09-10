@@ -259,14 +259,6 @@ function renderFields(container, fields, obj) {
   }
 }
 
-function collectFields(container, fields, obj) {
-  const labs = [...container.querySelectorAll(':scope label[data-k], :scope div > label[data-k]')];
-  for (const lab of labs) {
-    if (lab.closest('fieldset.row') && !container.matches('fieldset.row')) continue;
-    setPath(obj, lab.dataset.k, fieldValue(lab));
-  }
-}
-
 function makeRow(sec, item) {
   const fs_ = el('fieldset', { class: 'row' });
   const legend = el('legend', {}, sec.legend(item));
@@ -379,8 +371,6 @@ document.getElementById('save').addEventListener('click', async () => {
   } catch (e) { setStatus(e.message, 'err'); }
   btn.disabled = false;
 });
-
-window.addEventListener('beforeunload', e => { /* no dirty tracking; keep simple */ });
 
 fetch('/api/data').then(r => { if (r.status === 401) location.href = '/admin/login'; return r.json(); }).then(d => { DATA = d; renderAll(); }).catch(e => setStatus('Could not load data: ' + e.message, 'err'));
 </script>
