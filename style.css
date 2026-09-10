@@ -719,3 +719,8 @@ dl.projects dd {
 .post-links li {
 	margin-bottom: 4px;
 }
+
+/* Repeat mark in the Courses semester column */
+table.plain .rep {
+	color: #AAA;
+}

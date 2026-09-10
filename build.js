@@ -303,6 +303,17 @@ ${theses.map(p => '\t\t\t' + pubLi(p, data)).join('\n')}
   return h + foot(s);
 }
 
+// Course rows. Only the first row of a run of the same semester is labelled;
+// the rest show a repeat mark so the semester groups read at a glance.
+function semesterRows(courses) {
+  let prev = null;
+  return courses.map(c => {
+    const cell = c.semester === prev ? '<span class="rep">--</span>' : esc(c.semester);
+    prev = c.semester;
+    return `\t\t\t<tr><td>${cell}</td><td>${esc(c.title)}</td><td>${esc(c.level)}</td></tr>`;
+  }).join('\n');
+}
+
 function pageCourses(data) {
   const s = data.site;
   let h = head(s, 'Courses');
@@ -312,7 +323,7 @@ function pageCourses(data) {
 \t\t<p>${data.coursesIntro || ''}</p>
 \t\t<table class="plain">
 \t\t\t<tr><th>Semester</th><th>Course</th><th>Level</th></tr>
-${data.courses.map(c => `\t\t\t<tr><td>${esc(c.semester)}</td><td>${esc(c.title)}</td><td>${esc(c.level)}</td></tr>`).join('\n')}
+${semesterRows(data.courses)}
 \t\t</table>
 \t</div>
 `;
