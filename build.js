@@ -22,6 +22,12 @@ const EXT_ICON = '<svg class="ext" viewBox="0 0 24 24" width="13" height="13" ar
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
   'August', 'September', 'October', 'November', 'December'];
 
+// Short hash of style.css so browsers fetch a fresh copy whenever it changes.
+let CSS_VERSION = '';
+try {
+  CSS_VERSION = require('crypto').createHash('sha1').update(fs.readFileSync(path.join(ROOT, 'style.css'))).digest('hex').slice(0, 8);
+} catch (e) { CSS_VERSION = String(Date.now()); }
+
 const esc = s => String(s == null ? '' : s)
   .replace(/&(?![a-z#0-9]+;)/gi, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
@@ -51,7 +57,7 @@ function head(site, pageTitle) {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${t}</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=${CSS_VERSION}">
 </head>
 <body>
 <div id="wrapper">
@@ -384,6 +390,7 @@ ${p.titleKr ? `\t\t\t<p class="post-kr">${p.titleKr}</p>\n` : ''}${p.text ? `\t\
 }
 
 function build() {
+  try { CSS_VERSION = require('crypto').createHash('sha1').update(fs.readFileSync(path.join(ROOT, 'style.css'))).digest('hex').slice(0, 8); } catch (e) {}
   const data = JSON.parse(fs.readFileSync(DATA, 'utf8'));
   const pages = {
     'index.html': pageIndex,
