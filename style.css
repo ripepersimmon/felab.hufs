@@ -639,6 +639,8 @@ dl.projects dd {
 }
 
 .card-foot {
+	flex-wrap: wrap;
+	gap: 4px 12px;
 	margin-top: auto;
 	display: flex;
 	justify-content: space-between;
@@ -785,6 +787,9 @@ details.bib[open] > summary {
 }
 
 details.bib > pre {
+	/* .pub-list li has a -1.4em hanging indent; without this it also pulls the
+	   first line of the BibTeX block outside the box. */
+	text-indent: 0;
 	margin: 10px 0 4px;
 	padding: 12px 14px;
 	background: #F7F8FA;
@@ -797,4 +802,42 @@ details.bib > pre {
 	   and BibTeX ignores line breaks inside braces, so copying still works. */
 	white-space: pre-wrap;
 	word-break: break-word;
+}
+
+/* Blog year filter. The radios stay in the DOM (off-screen, not display:none)
+   so they can still be reached with the keyboard. */
+.yfilter {
+	position: absolute;
+	opacity: 0;
+	width: 0;
+	height: 0;
+	pointer-events: none;
+}
+
+.filters {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin: 0 0 24px;
+}
+
+.filters label {
+	padding: 4px 14px;
+	border: 1px solid #CBD5E1;
+	border-radius: 2px;
+	font-size: 0.86em;
+	letter-spacing: 0.5px;
+	color: #333;
+	cursor: pointer;
+	user-select: none;
+}
+
+.filters label:hover {
+	border-color: #0B3D6E;
+	color: #0B3D6E;
+}
+
+.yfilter:focus-visible ~ .filters label {
+	outline: 2px solid #0B3D6E;
+	outline-offset: 2px;
 }

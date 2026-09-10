@@ -17,7 +17,14 @@
 <link rel="icon" type="image/png" href="images/favicon-32.png" sizes="32x32">
 <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
 <link rel="alternate" type="application/rss+xml" title="Financial Engineering Lab. — Blog" href="feed.xml">
-<link rel="stylesheet" href="style.css?v=06404564">
+<link rel="stylesheet" href="style.css?v=e2fda544">
+<style>
+#yf-2026:checked ~ .cards .card:not(.y2026) { display: none; }
+#yf-2026:checked ~ .filters label[for="yf-2026"] { background: #0B3D6E; color: #fff; border-color: #0B3D6E; }
+#yf-2025:checked ~ .cards .card:not(.y2025) { display: none; }
+#yf-2025:checked ~ .filters label[for="yf-2025"] { background: #0B3D6E; color: #fff; border-color: #0B3D6E; }
+#yf-all:checked ~ .filters label[for="yf-all"] { background: #0B3D6E; color: #fff; border-color: #0B3D6E; }
+</style>
 </head>
 <body>
 <div id="wrapper">
@@ -41,9 +48,12 @@
 	<div class="section blog">
 		<h2>Blog</h2>
 		<p class="blog-intro">Photos and short notes from lab life: conferences, seminars, gatherings, and small milestones.</p>
-		<h3 class="year-heading">2026</h3>
+		<input class="yfilter" type="radio" name="year" id="yf-2026">
+		<input class="yfilter" type="radio" name="year" id="yf-2025">
+		<input class="yfilter" type="radio" name="year" id="yf-all" checked>
+		<p class="filters"><label for="yf-all">All</label><label for="yf-2026">2026</label><label for="yf-2025">2025</label></p>
 		<div class="cards">
-			<a class="card" href="blog/2026-09-website.html">
+			<a class="card y2026" href="blog/2026-09-website.html">
 				<div class="thumb"><img src="images/blog/260910/260910.png" alt="Lab website goes live" loading="lazy"></div>
 				<div class="card-body">
 					<p class="card-meta"><span class="tag">🎊 Milestone</span><time>September 10, 2026</time></p>
@@ -53,7 +63,7 @@
 					<p class="card-foot"><span>Yongin</span><span class="more">Details &rarr;</span></p>
 				</div>
 			</a>
-			<a class="card" href="blog/2026-06-kiie.html">
+			<a class="card y2026" href="blog/2026-06-kiie.html">
 				<div class="thumb"><img src="images/blog/26060304/lab-group.jpg" alt="2026 춘계공동학술대회 참가" loading="lazy"></div>
 				<div class="card-body">
 					<p class="card-meta"><span class="tag">🎓 Conference</span><time>June 4, 2026</time></p>
@@ -63,17 +73,14 @@
 					<p class="card-foot"><span>경주 화백컨벤션센터 (HICO)</span><span class="more">Details &rarr;</span></p>
 				</div>
 			</a>
-		</div>
-		<h3 class="year-heading">2025</h3>
-		<div class="cards">
-			<a class="card" href="blog/2025-11-award.html">
+			<a class="card y2025" href="blog/2025-11-award.html">
 				<div class="thumb"><img src="images/blog/251106/nicekoo.jpg" alt="구현모 학부연구생, 학과특성화 프로그램 학생연구 최우수상" loading="lazy"></div>
 				<div class="card-body">
 					<p class="card-meta"><span class="tag">🏆 Award</span><time>November 6, 2025</time></p>
 					<h4>구현모 학부연구생, 학과특성화 프로그램 학생연구 최우수상</h4>
 					<p class="post-kr">Top Prize at the HUFS Student Research Program</p>
 					<p class="card-summary">구현모 학부연구생이 제1회 학과특성화 프로그램 학생연구 결과보고회에서 인문사회계열(비언어) 최우수상을 받았습니다. 분자 용해도 예측을 위한 Meta-XGBoost 모델을 발표했습니다.</p>
-					<p class="card-foot"><span>한국외대 글로벌캠퍼스 백년관 국제세미나실</span><span class="more">Details &rarr;</span></p>
+					<p class="card-foot"><span>한국외대 백년관 국제세미나실</span><span class="more">Details &rarr;</span></p>
 				</div>
 			</a>
 		</div>

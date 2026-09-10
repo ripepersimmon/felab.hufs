@@ -97,7 +97,9 @@ ${meta.join('\n')}
 <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
 <link rel="alternate" type="application/rss+xml" title="${esc(site.title)} — ${esc((site.blog && site.blog.label) || 'Blog')}" href="feed.xml">
 <link rel="stylesheet" href="style.css?v=${CSS_VERSION}">
-</head>
+${o.style ? `<style>
+${o.style}</style>
+` : ''}</head>
 <body>
 <div id="wrapper">
 \t<div id="header">
@@ -220,8 +222,18 @@ function bibKey(p) {
   return `${first}${p.year}${word}`;
 }
 
+// "Family, Given" is the unambiguous BibTeX form: it tells the style which
+// part is the surname instead of leaving it to guess from the last word.
+function bibName(author) {
+  const n = author.trim().replace(/[†*]$/, '').trim();
+  const parts = n.split(/\s+/);
+  if (parts.length < 2) return n;
+  const family = parts[parts.length - 1];
+  return `${family}, ${parts.slice(0, -1).join(' ')}`;
+}
+
 function bibEntry(p) {
-  const authors = p.authors.split(',').map(a => a.trim().replace(/[†*]$/, '').trim()).filter(Boolean).join(' and ');
+  const authors = p.authors.split(',').map(a => a.trim()).filter(Boolean).map(bibName).join(' and ');
   const doi = (p.links || []).map(l => l.url).find(u => /doi\.org\//.test(u));
   const arx = (p.links || []).map(l => l.url).find(u => /arxiv\.org\//.test(u));
   const f = [['author', authors], ['title', stripTags(p.title)], ['year', String(p.year)]];
@@ -513,7 +525,7 @@ function postCard(p, cats) {
   const thumb = photos.length
     ? `<img src="${esc(photos[0].url)}" alt="${esc(p.title)}" loading="lazy">`
     : `<div class="thumb-blank">${c.icon || ''}</div>`;
-  return `\t\t\t<a class="card" href="blog/${esc(id)}.html">
+  return `\t\t\t<a class="card y${esc(String(p.date || '').slice(0, 4))}" href="blog/${esc(id)}.html">
 \t\t\t\t<div class="thumb">${thumb}</div>
 \t\t\t\t<div class="card-body">
 \t\t\t\t\t<p class="card-meta">${catChip(cats, p.type)}<time>${dateLong(p.date)}</time></p>
@@ -529,16 +541,30 @@ function pageBlog(data) {
   const cats = data.blogCategories || {};
   const posts = (data.blog || []).slice().sort((a, b) => (b.date || '').localeCompare(a.date || ''));
   const intro = (s.blog && s.blog.intro) ? `\t\t<p class="blog-intro">${s.blog.intro}</p>\n` : '';
-  let h = head(s, 'Blog', { desc: (s.blog && s.blog.intro) || '', path: 'blog.html' });
+  const yrs = [...new Set(posts.map(p => (p.date || '').slice(0, 4)))];
+  // The years are data, so the rules that pair each button with its cards have
+  // to be generated. Everything that does not depend on the years lives in
+  // style.css.
+  const filterCss = yrs.length > 1 ? yrs.map(y =>
+    `#yf-${y}:checked ~ .cards .card:not(.y${y}) { display: none; }\n` +
+    `#yf-${y}:checked ~ .filters label[for="yf-${y}"] { background: #0B3D6E; color: #fff; border-color: #0B3D6E; }\n`
+  ).join('') + `#yf-all:checked ~ .filters label[for="yf-all"] { background: #0B3D6E; color: #fff; border-color: #0B3D6E; }\n` : '';
+  let h = head(s, 'Blog', { desc: (s.blog && s.blog.intro) || '', path: 'blog.html', style: filterCss });
   h += `
 \t<div class="section blog">
 \t\t<h2>${esc((s.blog && s.blog.label) || 'Blog')}</h2>
 ${intro}`;
   if (!posts.length) h += `\t\t<p>No posts yet.</p>\n`;
   const years = [...new Set(posts.map(p => (p.date || '').slice(0, 4)))];
-  for (const y of years) {
-    if (years.length > 1) h += `\t\t<h3 class="year-heading">${y}</h3>\n`;
-    h += `\t\t<div class="cards">\n${posts.filter(p => (p.date || '').slice(0, 4) === y).map(p => postCard(p, cats)).join('\n')}\n\t\t</div>\n`;
+  // Year filter. Radio inputs plus sibling selectors, so filtering needs no
+  // JavaScript; with CSS off every post simply stays visible.
+  if (years.length > 1) {
+    h += years.map(y => `\t\t<input class="yfilter" type="radio" name="year" id="yf-${y}">`).join('\n') + '\n';
+    h += `\t\t<input class="yfilter" type="radio" name="year" id="yf-all" checked>\n`;
+    h += `\t\t<p class="filters"><label for="yf-all">All</label>${years.map(y => `<label for="yf-${y}">${y}</label>`).join('')}</p>\n`;
+  }
+  if (posts.length) {
+    h += `\t\t<div class="cards">\n${posts.map(p => postCard(p, cats)).join('\n')}\n\t\t</div>\n`;
   }
   h += `\t</div>\n`;
   return h + foot(s);
