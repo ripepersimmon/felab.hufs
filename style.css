@@ -679,3 +679,9 @@ dl.projects dd {
 @media (max-width: 560px) {
 	.cards { grid-template-columns: 1fr; }
 }
+
+/* Member period */
+
+.person .period {
+	color: #555;
+}

@@ -186,7 +186,11 @@ function personCard(p, small) {
   const H = small ? 'h4' : 'h3';
   const lines = [];
   if (small) {
-    if (p.role) lines.push(`<p>${esc(p.role)}</p>`);
+    if (p.role || p.period) {
+      const role = p.role ? esc(p.role) : '';
+      const period = p.period ? `<span class="period">${esc(p.period)}</span>` : '';
+      lines.push(`<p>${[role, period].filter(Boolean).join(', ')}</p>`);
+    }
     if (p.interests) lines.push(`<p>Interests: ${esc(p.interests)}</p>`);
   } else {
     (p.lines || []).forEach(l => lines.push(`<p>${l}</p>`));
