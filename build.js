@@ -94,7 +94,7 @@ function foot(site) {
 \t\t<div class="footer-text">
 \t\t\t<p>${f.lines.join('<br>\n\t\t\t')}<br>
 \t\t\tEmail. <a href="mailto:${esc(f.email)}">${esc(f.email)}</a></p>
-\t\t\t<p>${f.copyright}</p>
+\t\t\t<p>${f.copyright}${f.webmaster ? `<br>\n\t\t\tWebmaster. <a href="mailto:${esc(f.webmaster)}">${esc(f.webmaster)}</a>${f.webmasterName ? ` (${esc(f.webmasterName)})` : ''}` : ''}</p>
 \t\t</div>
 \t</div>
 </div>
