@@ -1,0 +1,9 @@
+# local admin password hash and backups
+admin/config.json
+data/site.json.bak
+
+# tooling
+node_modules/
+.omc/
+Thumbs.db
+.DS_Store

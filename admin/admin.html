@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin — Financial Engineering Lab.</title>
+<link rel="stylesheet" href="/style.css">
+<style>
+#wrapper { width: 1080px; }
+.topbar { display: flex; justify-content: space-between; align-items: baseline; padding: 30px 0 10px; border-bottom: 3px double #1A1A1A; }
+.topbar h1 { font-size: 1.6em; }
+.topbar .actions a, .topbar .actions button { margin-left: 14px; }
+.tabs { border-bottom: 1px solid #1A1A1A; margin-bottom: 20px; }
+.tabs button { font: inherit; background: none; border: none; padding: 10px 0; margin-right: 22px; cursor: pointer; color: #1A1A1A; }
+.tabs button.on { color: #0B3D6E; box-shadow: inset 0 -2px 0 #0B3D6E; }
+.panel { display: none; padding-bottom: 30px; }
+.panel.on { display: block; }
+.panel h2 { padding-bottom: 12px; }
+.help { font-size: 0.88em; color: #555; margin-bottom: 14px; }
+fieldset.row { border: 1px solid #DDD; padding: 12px 14px; margin: 0 0 12px; }
+fieldset.row legend { font-size: 0.8em; color: #555; letter-spacing: 1px; padding: 0 6px; }
+label.f { display: block; margin-bottom: 8px; font-size: 0.9em; color: #333; }
+label.f span { display: block; margin-bottom: 2px; font-size: 0.85em; color: #555; }
+input[type=text], input[type=number], input[type=password], textarea, select { width: 100%; box-sizing: border-box; padding: 6px 8px; font: inherit; font-size: 0.95em; border: 1px solid #BBB; background: #fff; }
+textarea { min-height: 64px; resize: vertical; }
+textarea.tall { min-height: 120px; }
+label.chk { display: inline-block; margin: 4px 16px 8px 0; font-size: 0.9em; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px; }
+.grid3 { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 0 20px; }
+.rowbtns { text-align: right; margin-top: 4px; }
+button.sm { font: inherit; font-size: 0.82em; padding: 3px 10px; background: #fff; border: 1px solid #999; cursor: pointer; margin-left: 6px; }
+button.sm:hover { border-color: #0B3D6E; color: #0B3D6E; }
+button.add { font: inherit; font-size: 0.9em; padding: 6px 14px; background: #fff; border: 1px solid #0B3D6E; color: #0B3D6E; cursor: pointer; }
+button.primary { font: inherit; padding: 8px 22px; background: #0B3D6E; color: #fff; border: none; cursor: pointer; }
+button.primary:disabled { opacity: 0.5; }
+.savebar { position: sticky; bottom: 0; background: #fff; border-top: 1px solid #1A1A1A; padding: 12px 0; display: flex; align-items: center; gap: 16px; }
+.status { font-size: 0.9em; color: #555; }
+.status.err { color: #A00; }
+.status.ok { color: #060; }
+.photo-field { display: flex; gap: 12px; align-items: flex-start; }
+.photo-field img { width: 60px; height: 76px; object-fit: cover; border: 1px solid #DDD; background: #EEE; }
+.photo-field input[type=file] { font-size: 0.85em; }
+a.plain { border: none; }
+</style>
+</head>
+<body>
+<div id="wrapper">
+	<div class="topbar">
+		<h1>Financial Engineering Lab. &middot; Admin</h1>
+		<div class="actions">
+			<a href="/" target="_blank">Preview site</a>
+			<a href="/admin/logout">Log out</a>
+		</div>
+	</div>
+
+	<div class="tabs" id="tabs"></div>
+	<div id="panels"></div>
+
+	<div class="savebar">
+		<button class="primary" id="save">Save &amp; rebuild</button>
+		<span class="status" id="status"></span>
+	</div>
+</div>
+
+<script>
+'use strict';
+let DATA = null;
+
+// Field specs -------------------------------------------------------------
+// type: text | number | textarea | html | checkbox | select | photo | lines | links | pairs
+const SECTIONS = [
+  { id: 'general', label: 'General', kind: 'object', path: 'site', fields: [
+    { k: 'title', l: 'Site title' },
+    { k: 'subtitle', l: 'Subtitle (HTML allowed)' },
+    { k: 'notice.enabled', l: 'Show notice box on Home', t: 'checkbox' },
+    { k: 'notice.html', l: 'Notice text (HTML allowed)', t: 'html' },
+    { k: 'about', l: 'About paragraphs (one paragraph per line, HTML allowed)', t: 'lines', tall: true },
+    { k: 'recentCount', l: 'Number of news items in the Home sidebar', t: 'number' },
+  ]},
+  { id: 'professor', label: 'Professor', kind: 'object', path: 'professor', fields: [
+    { k: 'name', l: 'Name (English)' },
+    { k: 'korean', l: 'Name (Korean)' },
+    { k: 'photo', l: 'Photo', t: 'photo' },
+    { k: 'lines', l: 'Bio lines (one per line, HTML allowed)', t: 'lines', tall: true },
+    { k: 'email', l: 'Email' },
+    { k: 'links', l: 'Links (one per line: type url — type is linkedin, github, scholar, or website)', t: 'links' },
+  ], extra: [
+    { path: 'joining', k: '', l: 'Joining the Lab text (HTML allowed)', t: 'html' },
+  ]},
+  { id: 'members', label: 'Members', kind: 'list', path: 'members', legend: m => m.name || 'New member', fields: [
+    { k: 'name', l: 'Name (English)', g: 'grid2' },
+    { k: 'korean', l: 'Name (Korean)', g: 'grid2' },
+    { k: 'group', l: 'Group heading (e.g. Undergraduate Researchers, Graduate Students)', g: 'grid2' },
+    { k: 'role', l: 'Role line', g: 'grid2' },
+    { k: 'photo', l: 'Photo', t: 'photo' },
+    { k: 'interests', l: 'Interests' },
+    { k: 'email', l: 'Email' },
+    { k: 'links', l: 'Links (one per line: type url — type is linkedin, github, scholar, or website)', t: 'links' },
+  ], help: 'Members are grouped under their group heading in the order listed here. Names here are matched against publication author lists to underline lab members.' },
+  { id: 'research', label: 'Research', kind: 'list', path: 'research', legend: r => r.title || 'New area', fields: [
+    { k: 'title', l: 'Title' },
+    { k: 'text', l: 'Description (HTML allowed)', t: 'html' },
+  ]},
+  { id: 'projects', label: 'Projects', kind: 'list', path: 'projects', legend: p => p.title || 'New project', fields: [
+    { k: 'title', l: 'Title' },
+    { k: 'sponsor', l: 'Sponsor', g: 'grid2' },
+    { k: 'period', l: 'Period (e.g. 2026 or 2023&ndash;2024)', g: 'grid2' },
+    { k: 'description', l: 'One-line description' },
+  ]},
+  { id: 'publications', label: 'Publications', kind: 'list', path: 'publications', legend: p => (p.year ? p.year + ' — ' : '') + (p.title || 'New publication'), fields: [
+    { k: 'authors', l: 'Authors, comma-separated. Add † after a corresponding author. The director is shown in bold and members underlined automatically.', t: 'html' },
+    { k: 'title', l: 'Title' },
+    { k: 'year', l: 'Year', t: 'number', g: 'grid3' },
+    { k: 'type', l: 'Type', t: 'select', opts: ['journal', 'conference', 'preprint', 'thesis'], g: 'grid3' },
+    { k: 'selected', l: 'Show on Home', t: 'checkbox', g: 'grid3' },
+    { k: 'venue', l: 'Journal / conference name' },
+    { k: 'note', l: 'Note shown after the venue, e.g. JCR Q1' },
+    { k: 'links', l: 'Links (one per line: label url — e.g. paper https://doi.org/...)', t: 'pairs' },
+  ], help: 'Publications are grouped by year in the order listed here. Theses go under a separate heading.' },
+  { id: 'courses', label: 'Courses', kind: 'list', path: 'courses', legend: c => (c.semester ? c.semester + ' — ' : '') + (c.title || 'New course'), fields: [
+    { k: 'semester', l: 'Semester', g: 'grid3' },
+    { k: 'title', l: 'Course', g: 'grid3' },
+    { k: 'level', l: 'Level', g: 'grid3' },
+    { k: 'code', l: 'Course code (optional)' },
+  ], extra: [
+    { path: 'coursesIntro', k: '', l: 'Intro text above the table (HTML allowed)', t: 'html' },
+  ], help: 'The button below replaces this list with the courses found for the professor in the HUFS timetable system (wis.hufs.ac.kr) and rebuilds the site. Edit fetch-courses.js to change the instructor name or department code.', fetchCourses: true },
+  { id: 'news', label: 'News', kind: 'list', path: 'news', legend: n => (n.date || '') + ' ' + (n.short || ''), fields: [
+    { k: 'date', l: 'Month (YYYY-MM)', g: 'grid2' },
+    { k: 'short', l: 'Short version for the Home sidebar', g: 'grid2' },
+    { k: 'text', l: 'Full text (HTML allowed)', t: 'html' },
+  ], help: 'Newest first. Items with the same month are grouped under one heading.' },
+  { id: 'contact', label: 'Contact & Footer', kind: 'object', path: 'site', fields: [
+    { k: 'contact.name', l: 'Contact name (Home sidebar)' },
+    { k: 'contact.email', l: 'Contact email' },
+    { k: 'contact.lines', l: 'Contact lines (one per line)', t: 'lines' },
+    { k: 'footer.lines', l: 'Footer address lines (one per line)', t: 'lines' },
+    { k: 'footer.email', l: 'Footer email' },
+    { k: 'footer.copyright', l: 'Copyright line (HTML allowed)' },
+    { k: 'footer.logo', l: 'Footer logo image path' },
+    { k: 'footer.logoUrl', l: 'Footer logo link' },
+  ]},
+  { id: 'password', label: 'Password', kind: 'password' },
+];
+
+// Path helpers ----------------------------------------------------------
+function getPath(obj, p) { return p.split('.').reduce((o, k) => (o == null ? undefined : o[k]), obj); }
+function setPath(obj, p, v) { const ks = p.split('.'); let o = obj; for (let i = 0; i < ks.length - 1; i++) { if (o[ks[i]] == null) o[ks[i]] = {}; o = o[ks[i]]; } o[ks[ks.length - 1]] = v; }
+
+// Rendering -------------------------------------------------------------
+function el(tag, attrs, ...children) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) { if (k === 'class') e.className = v; else if (k.startsWith('on')) e.addEventListener(k.slice(2), v); else if (v != null) e.setAttribute(k, v); }
+  for (const c of children) if (c != null) e.append(c);
+  return e;
+}
+
+function fieldInput(f, value, ctx) {
+  const t = f.t || 'text';
+  let input;
+  if (t === 'checkbox') {
+    input = el('input', { type: 'checkbox' }); input.checked = !!value;
+    const lab = el('label', { class: 'chk' }, input, ' ' + f.l); lab.dataset.k = f.k; lab.dataset.t = t;
+    return lab;
+  }
+  if (t === 'textarea' || t === 'html') input = el('textarea', {}, value == null ? '' : String(value));
+  else if (t === 'lines') { input = el('textarea', { class: f.tall ? 'tall' : '' }, (value || []).join('\n')); }
+  else if (t === 'links') { input = el('textarea', {}, (value || []).map(x => (x.type || 'website') + ' ' + (x.url || '')).join('\n')); }
+  else if (t === 'pairs') { input = el('textarea', {}, (value || []).map(x => (x.label || 'paper') + ' ' + (x.url || '')).join('\n')); }
+  else if (t === 'select') { input = el('select', {}, ...f.opts.map(o => { const op = el('option', { value: o }, o); if (o === value) op.selected = true; return op; })); }
+  else if (t === 'number') input = el('input', { type: 'number', value: value == null ? '' : value });
+  else if (t === 'photo') {
+    input = el('input', { type: 'text', value: value || '', placeholder: 'images/filename.jpg' });
+    const img = el('img', { src: value ? '/' + value : '' , alt: '' });
+    const file = el('input', { type: 'file', accept: 'image/*' });
+    file.addEventListener('change', async () => {
+      const fl = file.files[0]; if (!fl) return;
+      setStatus('Uploading ' + fl.name + '…');
+      const b64 = await new Promise(r => { const rd = new FileReader(); rd.onload = () => r(rd.result.split(',')[1]); rd.readAsDataURL(fl); });
+      const res = await fetch('/api/upload', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: fl.name, data: b64 }) });
+      const j = await res.json();
+      if (!res.ok) return setStatus(j.error || 'upload failed', 'err');
+      input.value = j.path; img.src = '/' + j.path + '?t=' + Date.now();
+      setStatus('Uploaded to ' + j.path + '. Remember to Save.', 'ok');
+    });
+    const wrap = el('div', { class: 'photo-field' }, img, el('div', {}, input, file));
+    const lab = el('label', { class: 'f' }, el('span', {}, f.l), wrap); lab.dataset.k = f.k; lab.dataset.t = t; lab._input = input;
+    return lab;
+  }
+  else input = el('input', { type: 'text', value: value == null ? '' : String(value) });
+  const lab = el('label', { class: 'f' }, el('span', {}, f.l), input); lab.dataset.k = f.k; lab.dataset.t = t; lab._input = input;
+  return lab;
+}
+
+function fieldValue(lab) {
+  const t = lab.dataset.t; const input = lab._input || lab.querySelector('input,textarea,select');
+  const v = input.value;
+  if (t === 'checkbox') return input.checked;
+  if (t === 'number') return v === '' ? '' : Number(v);
+  if (t === 'lines') return v.split('\n').map(s => s.trim()).filter(Boolean);
+  if (t === 'links') return v.split('\n').map(s => s.trim()).filter(Boolean).map(s => { const i = s.indexOf(' '); return i < 0 ? { type: 'website', url: s } : { type: s.slice(0, i).toLowerCase(), url: s.slice(i + 1).trim() }; });
+  if (t === 'pairs') return v.split('\n').map(s => s.trim()).filter(Boolean).map(s => { const i = s.indexOf(' '); return i < 0 ? { label: 'paper', url: s } : { label: s.slice(0, i), url: s.slice(i + 1).trim() }; });
+  return v;
+}
+
+function renderFields(container, fields, obj) {
+  let grid = null, gridClass = null;
+  for (const f of fields) {
+    const node = fieldInput(f, getPath(obj, f.k));
+    if (f.g) {
+      if (!grid || gridClass !== f.g) { grid = el('div', { class: f.g }); gridClass = f.g; container.append(grid); }
+      grid.append(node);
+    } else { grid = null; gridClass = null; container.append(node); }
+  }
+}
+
+function collectFields(container, fields, obj) {
+  const labs = [...container.querySelectorAll(':scope label[data-k], :scope div > label[data-k]')];
+  for (const lab of labs) {
+    if (lab.closest('fieldset.row') && !container.matches('fieldset.row')) continue;
+    setPath(obj, lab.dataset.k, fieldValue(lab));
+  }
+}
+
+function makeRow(sec, item) {
+  const fs_ = el('fieldset', { class: 'row' });
+  const legend = el('legend', {}, sec.legend(item));
+  fs_.append(legend);
+  renderFields(fs_, sec.fields, item);
+  const btns = el('div', { class: 'rowbtns' },
+    el('button', { class: 'sm', type: 'button', onclick: () => { if (fs_.previousElementSibling && fs_.previousElementSibling.matches('fieldset')) fs_.parentNode.insertBefore(fs_, fs_.previousElementSibling); } }, '▲ Up'),
+    el('button', { class: 'sm', type: 'button', onclick: () => { const n = fs_.nextElementSibling; if (n && n.matches('fieldset')) fs_.parentNode.insertBefore(n, fs_); } }, '▼ Down'),
+    el('button', { class: 'sm', type: 'button', onclick: () => { if (confirm('Delete this item?')) fs_.remove(); } }, 'Delete'),
+  );
+  fs_.append(btns);
+  return fs_;
+}
+
+function emptyItem(sec) { const o = {}; for (const f of sec.fields) o[f.k] = (f.t === 'checkbox') ? false : (f.t === 'lines' || f.t === 'links' || f.t === 'pairs') ? [] : (f.t === 'select' ? f.opts[0] : ''); return o; }
+
+function renderAll() {
+  const tabs = document.getElementById('tabs'); const panels = document.getElementById('panels');
+  tabs.innerHTML = ''; panels.innerHTML = '';
+  SECTIONS.forEach((sec, i) => {
+    const b = el('button', { type: 'button', onclick: () => show(sec.id) }, sec.label); b.dataset.id = sec.id; tabs.append(b);
+    const p = el('div', { class: 'panel' }); p.dataset.id = sec.id; p.dataset.kind = sec.kind;
+    p.append(el('h2', {}, sec.label));
+    if (sec.help) p.append(el('p', { class: 'help' }, sec.help));
+    if (sec.kind === 'object') {
+      renderFields(p, sec.fields, getPath(DATA, sec.path));
+    } else if (sec.kind === 'list') {
+      const list = el('div', { class: 'list' });
+      for (const item of getPath(DATA, sec.path)) list.append(makeRow(sec, item));
+      p.append(list);
+      p.append(el('button', { class: 'add', type: 'button', onclick: () => { list.append(makeRow(sec, emptyItem(sec))); list.lastChild.scrollIntoView({ block: 'center' }); } }, '+ Add'));
+    } else if (sec.kind === 'password') {
+      const cur = el('input', { type: 'password' }), nxt = el('input', { type: 'password' });
+      p.append(el('label', { class: 'f' }, el('span', {}, 'Current password'), cur));
+      p.append(el('label', { class: 'f' }, el('span', {}, 'New password'), nxt));
+      p.append(el('button', { class: 'add', type: 'button', onclick: async () => {
+        const r = await fetch('/api/password', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ current: cur.value, next: nxt.value }) });
+        const j = await r.json(); setStatus(r.ok ? 'Password changed.' : j.error, r.ok ? 'ok' : 'err'); if (r.ok) { cur.value = ''; nxt.value = ''; }
+      } }, 'Change password'));
+    }
+    if (sec.fetchCourses) {
+      p.append(el('p', {}, el('button', { class: 'add', type: 'button', onclick: async () => {
+        if (!confirm('Replace the course list with data from the HUFS timetable system?')) return;
+        setStatus('Fetching courses from wis.hufs.ac.kr…');
+        const r = await fetch('/api/fetch-courses', { method: 'POST' });
+        const j = await r.json();
+        if (!r.ok) return setStatus(j.error || 'fetch failed', 'err');
+        const d = await (await fetch('/api/data')).json(); DATA = d; renderAll(); show('courses');
+        setStatus(`Fetched ${j.count} courses and rebuilt the site.`, 'ok');
+      } }, 'Fetch from HUFS timetable')));
+    }
+    if (sec.extra) {
+      for (const f of sec.extra) {
+        const node = fieldInput(f, getPath(DATA, f.path)); node.dataset.path = f.path; node.dataset.extra = '1';
+        p.append(node);
+      }
+    }
+    panels.append(p);
+  });
+  show(location.hash.slice(1) || SECTIONS[0].id);
+}
+
+function show(id) {
+  for (const b of document.querySelectorAll('#tabs button')) b.classList.toggle('on', b.dataset.id === id);
+  for (const p of document.querySelectorAll('.panel')) p.classList.toggle('on', p.dataset.id === id);
+  history.replaceState(null, '', '#' + id);
+}
+
+function collectAll() {
+  const out = JSON.parse(JSON.stringify(DATA));
+  for (const sec of SECTIONS) {
+    const p = document.querySelector(`.panel[data-id="${sec.id}"]`);
+    if (sec.kind === 'object') {
+      const target = getPath(out, sec.path);
+      for (const lab of p.querySelectorAll('label[data-k]')) if (!lab.dataset.extra) setPath(target, lab.dataset.k, fieldValue(lab));
+    } else if (sec.kind === 'list') {
+      const arr = [];
+      for (const row of p.querySelectorAll('fieldset.row')) {
+        const item = {};
+        for (const lab of row.querySelectorAll('label[data-k]')) setPath(item, lab.dataset.k, fieldValue(lab));
+        arr.push(item);
+      }
+      setPath(out, sec.path, arr);
+    }
+    for (const lab of p.querySelectorAll('label[data-extra]')) setPath(out, lab.dataset.path, fieldValue(lab));
+  }
+  return out;
+}
+
+function setStatus(msg, cls) { const s = document.getElementById('status'); s.textContent = msg; s.className = 'status ' + (cls || ''); }
+
+document.getElementById('save').addEventListener('click', async () => {
+  const btn = document.getElementById('save'); btn.disabled = true; setStatus('Saving…');
+  try {
+    const body = collectAll();
+    const r = await fetch('/api/data', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error || 'save failed');
+    DATA = body;
+    setStatus('Saved and rebuilt at ' + new Date().toLocaleTimeString() + '. Upload the HTML files and images/ to publish.', 'ok');
+  } catch (e) { setStatus(e.message, 'err'); }
+  btn.disabled = false;
+});
+
+window.addEventListener('beforeunload', e => { /* no dirty tracking; keep simple */ });
+
+fetch('/api/data').then(r => { if (r.status === 401) location.href = '/admin/login'; return r.json(); }).then(d => { DATA = d; renderAll(); }).catch(e => setStatus('Could not load data: ' + e.message, 'err'));
+</script>
+</body>
+</html>

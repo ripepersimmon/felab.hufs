@@ -1,0 +1,420 @@
+/* HUFS Financial Engineering Lab — plain static stylesheet */
+
+body {
+	margin: 0;
+	background: #FFFFFF;
+	font-family: Palatino, "Palatino Linotype", "Book Antiqua", "Noto Serif KR", serif;
+	font-size: 16px;
+	line-height: 1.65;
+	color: #1A1A1A;
+}
+
+h1, h2, h3, h4 {
+	margin: 0;
+	padding: 0;
+	font-weight: normal;
+	color: #1A1A1A;
+}
+
+h2 {
+	font-size: 1.05em;
+	text-transform: uppercase;
+	letter-spacing: 2px;
+	color: #0B3D6E;
+}
+
+h3 {
+	font-size: 1.2em;
+	margin-top: 1.4em;
+}
+
+p, ul, ol { margin-top: 0; }
+
+a { color: #0B3D6E; text-decoration: none; border-bottom: 1px solid #B7C6D8; }
+a:hover { border-bottom-color: #0B3D6E; }
+
+#wrapper {
+	width: 1080px;
+	max-width: 100%;
+	margin: 0 auto;
+	padding: 0 24px 40px;
+	box-sizing: border-box;
+}
+
+/* Header */
+
+#header {
+	padding: 40px 0 14px;
+	border-bottom: 3px double #1A1A1A;
+}
+
+#header h1 {
+	font-size: 2.1em;
+	letter-spacing: -0.5px;
+	line-height: 1.15;
+}
+
+#header h1 a {
+	color: #1A1A1A;
+	border: none;
+}
+
+#header p {
+	margin: 4px 0 0;
+	font-size: 0.95em;
+	color: #555;
+}
+
+/* Menu */
+
+#menu {
+	border-bottom: 1px solid #1A1A1A;
+}
+
+#menu ul {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+#menu li {
+	display: inline-block;
+	margin-right: 28px;
+}
+
+#menu a {
+	display: block;
+	padding: 10px 0;
+	color: #1A1A1A;
+	border: none;
+	font-size: 0.95em;
+	letter-spacing: 0.5px;
+}
+
+#menu a:hover {
+	color: #0B3D6E;
+}
+
+#menu .current_page_item a {
+	color: #0B3D6E;
+	box-shadow: inset 0 -2px 0 #0B3D6E;
+}
+
+/* Sections */
+
+.section {
+	padding: 34px 0 10px;
+}
+
+.section h2 {
+	padding-bottom: 12px;
+}
+
+.section ul {
+	padding-left: 20px;
+}
+
+.section li {
+	margin-bottom: 6px;
+}
+
+.lead {
+	font-size: 1.15em;
+	line-height: 1.6;
+}
+
+.pub-list {
+	list-style: none;
+	padding-left: 0 !important;
+}
+
+.pub-list li {
+	margin-bottom: 12px;
+	padding-left: 1.4em;
+	text-indent: -1.4em;
+}
+
+.year-heading {
+	margin-top: 1.6em;
+	font-size: 1em;
+	color: #555;
+	letter-spacing: 1px;
+}
+
+/* Two columns on home */
+
+.columns {
+	display: flex;
+	gap: 64px;
+}
+
+.columns .main {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.columns .side {
+	flex: 0 0 260px;
+	font-size: 0.92em;
+	color: #333;
+}
+
+.side h2 {
+	font-size: 0.85em;
+}
+
+.side p {
+	margin-bottom: 14px;
+}
+
+/* Team */
+
+.person {
+	display: flex;
+	gap: 28px;
+	margin-bottom: 28px;
+}
+
+.person .photo {
+	flex: 0 0 150px;
+	width: 150px;
+	height: 190px;
+	background: #EEE;
+	border: 1px solid #DDD;
+}
+
+.person .photo img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	display: block;
+}
+
+.person .bio h3 {
+	margin-top: 0;
+}
+
+.person .bio p {
+	margin: 0 0 6px;
+}
+
+table.plain {
+	border-collapse: collapse;
+	width: 100%;
+	font-size: 0.95em;
+}
+
+table.plain th,
+table.plain td {
+	text-align: left;
+	padding: 8px 10px 8px 0;
+	border-bottom: 1px solid #E5E5E5;
+	vertical-align: top;
+}
+
+table.plain th {
+	font-weight: normal;
+	color: #555;
+	font-size: 0.85em;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+	border-bottom: 1px solid #1A1A1A;
+}
+
+dl.news dt {
+	margin-top: 14px;
+	color: #0B3D6E;
+	letter-spacing: 1px;
+}
+
+dl.news dd {
+	margin: 0 0 6px 0;
+}
+
+/* Footer */
+
+#footer {
+	margin-top: 40px;
+	padding-top: 16px;
+	border-top: 1px solid #1A1A1A;
+	font-size: 0.85em;
+	color: #555;
+}
+
+#footer p {
+	margin: 0 0 8px;
+}
+
+#footer a {
+	color: #555;
+	border-bottom-color: #CCC;
+}
+
+/* Small screens */
+
+@media (max-width: 640px) {
+	#header { padding-top: 24px; }
+	#header h1 { font-size: 1.6em; }
+	#menu li { margin-right: 16px; }
+	.columns { flex-direction: column; gap: 0; }
+	.columns .side { flex: none; }
+	.person { flex-direction: column; }
+}
+
+/* Projects */
+
+dl.projects dt {
+	margin-top: 18px;
+	font-size: 1.05em;
+}
+
+dl.projects dt span {
+	display: block;
+	font-size: 0.85em;
+	color: #555;
+	letter-spacing: 0.5px;
+}
+
+dl.projects dd {
+	margin: 4px 0 0 0;
+}
+
+/* Smaller member cards */
+
+.person.small {
+	margin-bottom: 20px;
+}
+
+.person.small .photo {
+	flex: 0 0 110px;
+	width: 110px;
+	height: 140px;
+}
+
+.person.small .bio h4 {
+	font-size: 1.1em;
+	margin: 0 0 4px;
+}
+
+.section h3 + .person {
+	margin-top: 14px;
+}
+
+/* Member grid and social links */
+
+.member-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 8px 40px;
+	margin-top: 14px;
+}
+
+.member-grid .person {
+	margin-bottom: 20px;
+}
+
+.member-grid .bio {
+	font-size: 0.95em;
+}
+
+.bio .links {
+	margin-top: 4px;
+}
+
+.bio .links a {
+	display: inline-block;
+	color: #0B3D6E;
+	border: none;
+	vertical-align: middle;
+	margin-right: 8px;
+}
+
+.bio .links a:hover {
+	color: #072B4F;
+}
+
+.bio .links svg {
+	display: block;
+}
+
+@media (max-width: 640px) {
+	.member-grid { grid-template-columns: 1fr; }
+}
+
+/* Footer logo */
+
+#footer .footer-logo {
+	margin-bottom: 14px;
+}
+
+#footer .footer-logo a {
+	border: none;
+}
+
+#footer .footer-logo img {
+	height: 34px;
+	width: auto;
+	display: block;
+}
+
+/* Publication legend and member underline */
+
+.legend {
+	font-size: 0.85em;
+	color: #555;
+	margin: -4px 0 16px;
+}
+
+.pub-list u, .legend u {
+	text-decoration: underline;
+	text-underline-offset: 3px;
+	text-decoration-color: #0B3D6E;
+}
+
+/* Bold member names */
+
+.person .bio h3,
+.person .bio h4 {
+	font-weight: bold;
+}
+
+/* Footer: logo left, address right */
+
+#footer {
+	display: flex;
+	align-items: flex-start;
+	gap: 40px;
+}
+
+#footer .footer-logo {
+	flex: 0 0 auto;
+	margin: 0;
+	padding-top: 4px;
+}
+
+#footer .footer-logo img {
+	height: 40px;
+}
+
+#footer .footer-text {
+	flex: 1 1 auto;
+}
+
+@media (max-width: 640px) {
+	#footer { flex-direction: column; gap: 14px; }
+}
+
+/* Home notice */
+
+.notice {
+	margin-top: 28px;
+	padding: 12px 16px;
+	border: 1px solid #0B3D6E;
+	border-left-width: 4px;
+	background: #F4F7FA;
+	font-size: 0.95em;
+}
+
+.notice b {
+	color: #0B3D6E;
+}
