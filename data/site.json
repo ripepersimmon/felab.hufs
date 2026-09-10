@@ -361,12 +361,21 @@
       "text": "\"Machine Learning for Disease-Specific Prediction of High-Cost Patients\" published in <i>Engineering Applications of Artificial Intelligence</i>. [<a href=\"https://doi.org/10.1016/j.engappai.2025.112200\" target=\"_blank\">paper</a>]"
     },
     {
+      "date": "2025-11",
+      "short": "Hyunmo Koo won the top prize at the HUFS Student Research Program.",
+      "text": "Undergraduate researcher Hyunmo Koo received the top prize (Humanities and Social Sciences division) at the first HUFS Student Research Program presentation, for \"Meta-XGBoost: A Robust Ensemble for Molecular Solubility Prediction\". [<a href=\"blog/2025-11-award.html\">blog</a>]"
+    },
+    {
       "date": "2025-03",
       "short": "The lab is established at HUFS.",
       "text": "Prof. Hyeongwoo Kong joins the Division of Finance &amp; AI at HUFS as Assistant Professor. The Financial Engineering Lab. is established."
     }
   ],
   "blogCategories": {
+    "award": {
+      "name": "Award",
+      "icon": "🏆"
+    },
     "conference": {
       "name": "Conference",
       "icon": "🎓"
@@ -440,6 +449,32 @@
         {
           "label": "금융 인공지능 특별 세션 후기, UNIST 이용재 교수님 (LinkedIn)",
           "url": "https://www.linkedin.com/posts/yongjae-lee-548982107_2026%EB%85%84-%EC%B6%98%EA%B3%84-%EA%B2%BD%EC%98%81%EA%B3%BC%ED%95%99%ED%9A%8C%EC%82%B0%EC%97%85%EA%B3%B5%ED%95%99%ED%9A%8C-%EA%B3%B5%EB%8F%99-%ED%95%99%EC%88%A0%EB%8C%80%ED%9A%8C%EC%97%90%EC%84%9C-%EA%B8%88%EC%9C%B5-%EC%9D%B8%EA%B3%B5%EC%A7%80%EB%8A%A5-%ED%8A%B9%EB%B3%84-activity-7468572383843414016-dO8_"
+        }
+      ]
+    },
+    {
+      "id": "2025-11-award",
+      "date": "2025-11-06",
+      "type": "award",
+      "title": "구현모 학부연구생, 학과특성화 프로그램 학생연구 최우수상",
+      "titleKr": "Top Prize at the HUFS Student Research Program",
+      "location": "한국외대 글로벌캠퍼스 백년관 국제세미나실",
+      "summary": "구현모 학부연구생이 제1회 학과특성화 프로그램 학생연구 결과보고회에서 인문사회계열(비언어) 최우수상을 받았습니다. 분자 용해도 예측을 위한 Meta-XGBoost 모델을 발표했습니다.",
+      "text": "<p>2025년 11월 6일 백년관 국제세미나실에서 열린 <b>제1회 학과특성화 프로그램 학생연구 결과보고회</b>에서 <u>구현모</u> 학부연구생(Finance &amp; AI 융합학부 이중전공)이 인문사회계열(비언어) 부문 <b>최우수상</b>을 수상했습니다. 한국외국어대학교 교육혁신원이 주관한 행사입니다.</p><p>발표 주제는 <i>Meta-XGBoost: A Robust Ensemble for Molecular Solubility Prediction</i>으로, 분자의 용해도를 예측하는 앙상블 모델입니다. 전체 데이터셋을 용해도 기준으로 Low, Mid, High 세 구간으로 나눠 구간마다 별도의 XGBoost 모델을 학습시키고, 각 모델의 예측값을 PyTorch로 구현한 FNN 메타 모델이 받아 softmax 기반 가중치를 만드는 구조입니다. 구간별 특이성을 반영하면서도 기존 최신 연구들을 웃도는 정확도를 냈습니다.</p><p>공형우 교수의 지도 아래 8개월에 걸쳐 진행된 연구입니다. 1학기에 기초 분석과 모델 설계를 마친 뒤 여름방학과 2학기 동안 추가 실험과 오류 분석, 후속 검증을 반복했습니다. 심사에서는 연구 결과 자체뿐 아니라 스스로 실험을 설계하고 해결책을 찾아간 과정이 함께 높은 평가를 받았습니다.</p>",
+      "photos": [
+        {
+          "url": "images/blog/251106/nicekoo.jpg",
+          "caption": "Meta-XGBoost 모델 구조를 발표하는 구현모 학부연구생"
+        },
+        {
+          "url": "images/blog/251106/greatkoo.jpg",
+          "caption": "시상식에서 공형우 교수와 구현모 학부연구생"
+        }
+      ],
+      "links": [
+        {
+          "label": "학부 공지: 학과 특성화 프로그램 학생연구 최우수상 수상",
+          "url": "https://aifinance.hufs.ac.kr/aifinance/m05_s02.do?enc=Zm5jdDF8QEB8JTJGYmJzJTJGYWlmaW5hbmNlJTJGMjEyNiUyRjI0MzM5MCUyRmFydGNsVmlldy5kbyUzRnBhZ2UlM0QyJTI2c3JjaENvbHVtbiUzRCUyNnNyY2hXcmQlM0QlMjZiYnNDbFNlcSUzRCUyNmJic09wZW5XcmRTZXElM0QlMjZyZ3NCZ25kZVN0ciUzRCUyNnJnc0VuZGRlU3RyJTNEJTI2aXNWaWV3TWluZSUzRGZhbHNlJTI2cGFzc3dvcmQlM0QlMjY%3D"
         }
       ]
     }
