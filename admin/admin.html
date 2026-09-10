@@ -140,12 +140,13 @@ const SECTIONS = [
     { k: 'location', l: 'Location', g: 'grid3' },
     { k: 'title', l: 'Title', g: 'grid2' },
     { k: 'titleKr', l: 'Title (Korean, optional)', g: 'grid2' },
+    { k: 'summary', l: 'Card summary (optional, plain text; the first sentences of the body are used if empty)' },
     { k: 'text', l: 'Body (HTML allowed, use <p> for paragraphs)', t: 'html', tall: true },
-    { k: 'photos', l: 'Photos (one per line: path | caption). Use the file picker to upload several at once.', t: 'photos' },
+    { k: 'photos', l: 'Photos (one per line: path | caption). The first photo is the card thumbnail. Use the file picker to upload several at once.', t: 'photos' },
     { k: 'id', l: 'Anchor id (optional, auto from date and title)' },
   ], extra: [
     { path: 'blogCategories', k: '', l: 'Categories (one per line: key emoji name — e.g. "conference 🎓 Conference")', t: 'cats' },
-  ], help: 'Posts are shown newest first, grouped by year. Photos are cropped to 4:3 thumbnails and open full-size when clicked.' },
+  ], help: 'Posts appear as cards, newest first, grouped by year. Each card opens its own page under blog/. Photos are cropped to 4:3 and open full-size when clicked.' },
   { id: 'contact', label: 'Contact & Footer', kind: 'object', path: 'site', fields: [
     { k: 'contact.name', l: 'Contact name (Home sidebar)' },
     { k: 'contact.email', l: 'Contact email' },

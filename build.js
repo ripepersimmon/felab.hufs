@@ -49,15 +49,16 @@ function linksHtml(links) {
   return `<p class="links">${a}</p>`;
 }
 
-function head(site, pageTitle) {
-  const t = pageTitle ? `${pageTitle} — ${site.title}, ${site.titleSuffix}` : `${site.title} — ${site.titleSuffix}`;
+function head(site, pageTitle, baseHref, docTitle) {
+  const t = docTitle ? `${docTitle} — ${site.title}` : pageTitle ? `${pageTitle} — ${site.title}, ${site.titleSuffix}` : `${site.title} — ${site.titleSuffix}`;
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${t}</title>
-<link rel="stylesheet" href="style.css?v=${CSS_VERSION}">
+${baseHref ? `<base href="${baseHref}">
+` : ""}<link rel="stylesheet" href="style.css?v=${CSS_VERSION}">
 </head>
 <body>
 <div id="wrapper">
@@ -344,6 +345,40 @@ function dateLong(d) {
   return `${MONTHS[+m - 1] || m} ${day ? +day + ', ' : ''}${y}`;
 }
 
+function postId(p) { return p.id || `${p.date}-${slug(p.title)}`; }
+
+function stripTags(html) { return String(html || '').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim(); }
+
+function postSummary(p) {
+  if (p.summary) return p.summary;
+  const t = stripTags(p.text);
+  return t.length > 170 ? t.slice(0, 168).replace(/\s+\S*$/, '') + '…' : t;
+}
+
+function catChip(cats, type) {
+  const c = cats[type];
+  if (!c) return '';
+  return `<span class="tag">${c.icon ? c.icon + ' ' : ''}${esc(c.name)}</span>`;
+}
+
+function postCard(p, cats) {
+  const id = postId(p);
+  const photos = (p.photos || []).filter(x => x && x.url);
+  const c = cats[p.type] || {};
+  const thumb = photos.length
+    ? `<img src="${esc(photos[0].url)}" alt="${esc(p.title)}" loading="lazy">`
+    : `<div class="thumb-blank">${c.icon || ''}</div>`;
+  return `\t\t\t<a class="card" href="blog/${esc(id)}.html">
+\t\t\t\t<div class="thumb">${thumb}</div>
+\t\t\t\t<div class="card-body">
+\t\t\t\t\t<p class="card-meta">${catChip(cats, p.type)}<time>${dateLong(p.date)}</time></p>
+\t\t\t\t\t<h4>${p.title}</h4>
+${p.titleKr ? `\t\t\t\t\t<p class="post-kr">${p.titleKr}</p>\n` : ''}\t\t\t\t\t<p class="card-summary">${esc(postSummary(p))}</p>
+\t\t\t\t\t<p class="card-foot"><span>${p.location ? esc(p.location) : ''}</span><span class="more">Details &rarr;</span></p>
+\t\t\t\t</div>
+\t\t\t</a>`;
+}
+
 function pageBlog(data) {
   const s = data.site;
   const cats = data.blogCategories || {};
@@ -354,38 +389,40 @@ function pageBlog(data) {
 \t<div class="section blog">
 \t\t<h2>${esc((s.blog && s.blog.label) || 'Blog')}</h2>
 ${intro}`;
-  if (!posts.length) {
-    h += `\t\t<p>No posts yet.</p>\n`;
-  }
+  if (!posts.length) h += `\t\t<p>No posts yet.</p>\n`;
   const years = [...new Set(posts.map(p => (p.date || '').slice(0, 4)))];
-  if (years.length > 1) {
-    h += `\t\t<p class="blog-years">${years.map(y => `<a href="#y${y}">${y}</a>`).join(' &middot; ')}</p>\n`;
-  }
-  let lastYear = null;
-  for (const p of posts) {
-    const year = (p.date || '').slice(0, 4);
-    if (year !== lastYear) { h += `\t\t<h3 class="year-heading" id="y${year}">${year}</h3>\n`; lastYear = year; }
-    const cat = cats[p.type];
-    const id = p.id || `${p.date}-${slug(p.title)}`;
-    const meta = [dateLong(p.date)];
-    if (cat) meta.push(`<span class="tag">${cat.icon ? cat.icon + ' ' : ''}${esc(cat.name)}</span>`);
-    if (p.location) meta.push(esc(p.location));
-    h += `
-\t\t<article class="post" id="${esc(id)}">
-\t\t\t<p class="post-meta">${meta.join(' &middot; ')}</p>
-\t\t\t<h4><a href="#${esc(id)}">${p.title}</a></h4>
-${p.titleKr ? `\t\t\t<p class="post-kr">${p.titleKr}</p>\n` : ''}${p.text ? `\t\t\t<div class="post-body">${p.text}</div>\n` : ''}`;
-    const photos = (p.photos || []).filter(x => x && x.url);
-    if (photos.length) {
-      h += `\t\t\t<div class="gallery n${Math.min(photos.length, 3)}">\n`;
-      for (const ph of photos) {
-        h += `\t\t\t\t<figure><a href="${esc(ph.url)}" target="_blank"><img src="${esc(ph.url)}" alt="${esc(ph.caption || p.title)}" loading="lazy"></a>${ph.caption ? `<figcaption>${ph.caption}</figcaption>` : ''}</figure>\n`;
-      }
-      h += `\t\t\t</div>\n`;
-    }
-    h += `\t\t</article>\n`;
+  for (const y of years) {
+    if (years.length > 1) h += `\t\t<h3 class="year-heading">${y}</h3>\n`;
+    h += `\t\t<div class="cards">\n${posts.filter(p => (p.date || '').slice(0, 4) === y).map(p => postCard(p, cats)).join('\n')}\n\t\t</div>\n`;
   }
   h += `\t</div>\n`;
+  return h + foot(s);
+}
+
+function pagePost(data, p) {
+  const s = data.site;
+  const cats = data.blogCategories || {};
+  const meta = [dateLong(p.date)];
+  const chip = catChip(cats, p.type);
+  if (chip) meta.push(chip);
+  if (p.location) meta.push(esc(p.location));
+  let h = head(s, 'Blog', '../', stripTags(p.title));
+  h += `
+\t<div class="section blog">
+\t\t<p class="crumb"><a href="blog.html">&larr; ${esc((s.blog && s.blog.label) || 'Blog')}</a></p>
+\t\t<article class="post single" id="${esc(postId(p))}">
+\t\t\t<p class="post-meta">${meta.join(' &middot; ')}</p>
+\t\t\t<h2 class="post-title">${p.title}</h2>
+${p.titleKr ? `\t\t\t<p class="post-kr">${p.titleKr}</p>\n` : ''}${p.text ? `\t\t\t<div class="post-body">${p.text}</div>\n` : ''}`;
+  const photos = (p.photos || []).filter(x => x && x.url);
+  if (photos.length) {
+    h += `\t\t\t<div class="gallery n${Math.min(photos.length, 3)}">\n`;
+    for (const ph of photos) {
+      h += `\t\t\t\t<figure><a href="${esc(ph.url)}" target="_blank"><img src="${esc(ph.url)}" alt="${esc(ph.caption || p.title)}" loading="lazy"></a>${ph.caption ? `<figcaption>${ph.caption}</figcaption>` : ''}</figure>\n`;
+    }
+    h += `\t\t\t</div>\n`;
+  }
+  h += `\t\t</article>\n\t</div>\n`;
   return h + foot(s);
 }
 
@@ -405,7 +442,19 @@ function build() {
   for (const [file, fn] of Object.entries(pages)) {
     fs.writeFileSync(path.join(ROOT, file), fn(data), 'utf8');
   }
-  return Object.keys(pages);
+  // One static page per blog post under blog/. Stale post pages are removed.
+  const dir = path.join(ROOT, 'blog');
+  fs.mkdirSync(dir, { recursive: true });
+  const keep = new Set();
+  for (const p of (data.blog || [])) {
+    const name = postId(p) + '.html';
+    keep.add(name);
+    fs.writeFileSync(path.join(dir, name), pagePost(data, p), 'utf8');
+  }
+  for (const f of fs.readdirSync(dir)) {
+    if (f.endsWith('.html') && !keep.has(f)) fs.unlinkSync(path.join(dir, f));
+  }
+  return Object.keys(pages).concat([...keep].map(f => 'blog/' + f));
 }
 
 module.exports = { build };

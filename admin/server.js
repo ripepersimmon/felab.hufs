@@ -119,7 +119,9 @@ function serveStatic(req, res, urlPath) {
   let rel = decodeURIComponent(urlPath);
   if (rel === '/') rel = '/index.html';
   const ext = path.extname(rel).toLowerCase();
-  const allowed = rel.startsWith('/images/') ? IMAGE_EXT.has(ext) : (ext === '.html' || ext === '.css');
+  const allowed = rel.startsWith('/images/') ? IMAGE_EXT.has(ext)
+    : rel.startsWith('/blog/') ? ext === '.html'
+    : (ext === '.html' || ext === '.css');
   const file = path.normalize(path.join(ROOT, rel));
   if (!allowed || !file.startsWith(ROOT + path.sep) || file.includes(path.sep + 'admin' + path.sep) || file.includes(path.sep + 'data' + path.sep)) {
     return send(res, 404, 'Not found');
