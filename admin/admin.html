@@ -76,6 +76,10 @@ const SECTIONS = [
     { k: 'notice.html', l: 'Notice text (HTML allowed)', t: 'html' },
     { k: 'about', l: 'About paragraphs (one paragraph per line, HTML allowed)', t: 'lines', tall: true },
     { k: 'recentCount', l: 'Number of news items in the Home sidebar', t: 'number' },
+    { k: 'blog.enabled', l: 'Show the Blog item in the menu', t: 'checkbox' },
+    { k: 'blog.label', l: 'Blog menu label', g: 'grid2' },
+    { k: 'blog.external', l: 'External blog URL (leave empty to use the built-in Blog page)', g: 'grid2' },
+    { k: 'blog.intro', l: 'Blog page intro line (HTML allowed)' },
   ]},
   { id: 'professor', label: 'Professor', kind: 'object', path: 'professor', fields: [
     { k: 'name', l: 'Name (English)' },
@@ -130,6 +134,18 @@ const SECTIONS = [
     { k: 'short', l: 'Short version for the Home sidebar', g: 'grid2' },
     { k: 'text', l: 'Full text (HTML allowed)', t: 'html' },
   ], help: 'Newest first. Items with the same month are grouped under one heading.' },
+  { id: 'blog', label: 'Blog', kind: 'list', path: 'blog', legend: p => (p.date || '') + ' — ' + (p.title || 'New post'), fields: [
+    { k: 'date', l: 'Date (YYYY-MM-DD)', g: 'grid3' },
+    { k: 'type', l: 'Category', t: 'select', opts: () => Object.keys(DATA.blogCategories || {}), g: 'grid3' },
+    { k: 'location', l: 'Location', g: 'grid3' },
+    { k: 'title', l: 'Title', g: 'grid2' },
+    { k: 'titleKr', l: 'Title (Korean, optional)', g: 'grid2' },
+    { k: 'text', l: 'Body (HTML allowed, use <p> for paragraphs)', t: 'html', tall: true },
+    { k: 'photos', l: 'Photos (one per line: path | caption). Use the file picker to upload several at once.', t: 'photos' },
+    { k: 'id', l: 'Anchor id (optional, auto from date and title)' },
+  ], extra: [
+    { path: 'blogCategories', k: '', l: 'Categories (one per line: key emoji name — e.g. "conference 🎓 Conference")', t: 'cats' },
+  ], help: 'Posts are shown newest first, grouped by year. Photos are cropped to 4:3 thumbnails and open full-size when clicked.' },
   { id: 'contact', label: 'Contact & Footer', kind: 'object', path: 'site', fields: [
     { k: 'contact.name', l: 'Contact name (Home sidebar)' },
     { k: 'contact.email', l: 'Contact email' },
@@ -167,7 +183,27 @@ function fieldInput(f, value, ctx) {
   else if (t === 'lines') { input = el('textarea', { class: f.tall ? 'tall' : '' }, (value || []).join('\n')); }
   else if (t === 'links') { input = el('textarea', {}, (value || []).map(x => (x.type || 'website') + ' ' + (x.url || '')).join('\n')); }
   else if (t === 'pairs') { input = el('textarea', {}, (value || []).map(x => (x.label || 'paper') + ' ' + (x.url || '')).join('\n')); }
-  else if (t === 'select') { input = el('select', {}, ...f.opts.map(o => { const op = el('option', { value: o }, o); if (o === value) op.selected = true; return op; })); }
+  else if (t === 'select') { const opts = typeof f.opts === 'function' ? f.opts() : f.opts; input = el('select', {}, ...opts.map(o => { const op = el('option', { value: o }, o); if (o === value) op.selected = true; return op; })); }
+  else if (t === 'cats') { input = el('textarea', {}, Object.entries(value || {}).map(([k, c]) => `${k} ${c.icon || ''} ${c.name || ''}`.trim()).join('\n')); }
+  else if (t === 'photos') {
+    input = el('textarea', { class: 'tall' }, (value || []).map(x => x.url + (x.caption ? ' | ' + x.caption : '')).join('\n'));
+    const file = el('input', { type: 'file', accept: 'image/*', multiple: true });
+    file.addEventListener('change', async () => {
+      const files = [...file.files]; if (!files.length) return;
+      for (const fl of files) {
+        setStatus('Uploading ' + fl.name + '…');
+        const b64 = await new Promise(r => { const rd = new FileReader(); rd.onload = () => r(rd.result.split(',')[1]); rd.readAsDataURL(fl); });
+        const res = await fetch('/api/upload', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: fl.name, data: b64, folder: 'blog' }) });
+        const j = await res.json();
+        if (!res.ok) { setStatus(j.error || 'upload failed', 'err'); return; }
+        input.value = (input.value.trim() ? input.value.trim() + '\n' : '') + j.path + ' | ';
+      }
+      file.value = '';
+      setStatus(`Uploaded ${files.length} photo(s). Add captions after the "|" and Save.`, 'ok');
+    });
+    const lab = el('label', { class: 'f' }, el('span', {}, f.l), input, file); lab.dataset.k = f.k; lab.dataset.t = t; lab._input = input;
+    return lab;
+  }
   else if (t === 'number') input = el('input', { type: 'number', value: value == null ? '' : value });
   else if (t === 'photo') {
     input = el('input', { type: 'text', value: value || '', placeholder: 'images/filename.jpg' });
@@ -200,6 +236,8 @@ function fieldValue(lab) {
   if (t === 'lines') return v.split('\n').map(s => s.trim()).filter(Boolean);
   if (t === 'links') return v.split('\n').map(s => s.trim()).filter(Boolean).map(s => { const i = s.indexOf(' '); return i < 0 ? { type: 'website', url: s } : { type: s.slice(0, i).toLowerCase(), url: s.slice(i + 1).trim() }; });
   if (t === 'pairs') return v.split('\n').map(s => s.trim()).filter(Boolean).map(s => { const i = s.indexOf(' '); return i < 0 ? { label: 'paper', url: s } : { label: s.slice(0, i), url: s.slice(i + 1).trim() }; });
+  if (t === 'photos') return v.split('\n').map(s => s.trim()).filter(Boolean).map(s => { const i = s.indexOf('|'); return i < 0 ? { url: s, caption: '' } : { url: s.slice(0, i).trim(), caption: s.slice(i + 1).trim() }; });
+  if (t === 'cats') { const o = {}; for (const line of v.split('\n')) { const m = line.trim().match(/^(\S+)\s+(\S+)\s+(.+)$/); if (m) o[m[1]] = { icon: m[2], name: m[3].trim() }; else if (line.trim()) { const [k, ...rest] = line.trim().split(/\s+/); o[k] = { icon: '', name: rest.join(' ') || k }; } } return o; }
   return v;
 }
 
@@ -236,7 +274,7 @@ function makeRow(sec, item) {
   return fs_;
 }
 
-function emptyItem(sec) { const o = {}; for (const f of sec.fields) o[f.k] = (f.t === 'checkbox') ? false : (f.t === 'lines' || f.t === 'links' || f.t === 'pairs') ? [] : (f.t === 'select' ? f.opts[0] : ''); return o; }
+function emptyItem(sec) { const o = {}; for (const f of sec.fields) o[f.k] = (f.t === 'checkbox') ? false : (f.t === 'lines' || f.t === 'links' || f.t === 'pairs' || f.t === 'photos') ? [] : (f.t === 'select' ? (typeof f.opts === 'function' ? f.opts() : f.opts)[0] : ''); if (sec.id === 'blog') o.date = new Date().toISOString().slice(0, 10); return o; }
 
 function renderAll() {
   const tabs = document.getElementById('tabs'); const panels = document.getElementById('panels');

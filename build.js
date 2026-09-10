@@ -17,6 +17,8 @@ const MENU = [
   ['news.html', 'News'],
 ];
 
+const EXT_ICON = '<svg class="ext" viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg>';
+
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
   'August', 'September', 'October', 'November', 'December'];
 
@@ -60,9 +62,21 @@ function head(site, pageTitle) {
 \t<div id="menu">
 \t\t<ul>
 ${MENU.map(([f, l]) => `\t\t\t<li${f === (pageTitle ? pageTitle.toLowerCase() + '.html' : 'index.html') ? ' class="current_page_item"' : ''}><a href="${f}">${l}</a></li>`).join('\n')}
+${blogMenuItem(site, pageTitle)}
 \t\t</ul>
 \t</div>
 `;
+}
+
+function blogMenuItem(site, pageTitle) {
+  const b = site.blog || {};
+  if (b.enabled === false) return '';
+  const label = b.label || 'Blog';
+  if (b.external) {
+    return `\t\t\t<li class="menu-right"><a href="${esc(b.external)}" target="_blank" rel="noopener">${esc(label)} ${EXT_ICON}</a></li>`;
+  }
+  const cur = pageTitle === 'Blog' ? ' current_page_item' : '';
+  return `\t\t\t<li class="menu-right${cur}"><a href="blog.html">${esc(label)} ${EXT_ICON}</a></li>`;
 }
 
 function foot(site) {
@@ -313,6 +327,62 @@ function pageNews(data) {
   return h + foot(s);
 }
 
+// Blog ---------------------------------------------------------------------
+
+function slug(s) {
+  return String(s).toLowerCase().replace(/[^a-z0-9가-힣]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'post';
+}
+
+function dateLong(d) {
+  const [y, m, day] = String(d).split('-');
+  return `${MONTHS[+m - 1] || m} ${day ? +day + ', ' : ''}${y}`;
+}
+
+function pageBlog(data) {
+  const s = data.site;
+  const cats = data.blogCategories || {};
+  const posts = (data.blog || []).slice().sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  const intro = (s.blog && s.blog.intro) ? `\t\t<p class="blog-intro">${s.blog.intro}</p>\n` : '';
+  let h = head(s, 'Blog');
+  h += `
+\t<div class="section blog">
+\t\t<h2>${esc((s.blog && s.blog.label) || 'Blog')}</h2>
+${intro}`;
+  if (!posts.length) {
+    h += `\t\t<p>No posts yet.</p>\n`;
+  }
+  const years = [...new Set(posts.map(p => (p.date || '').slice(0, 4)))];
+  if (years.length > 1) {
+    h += `\t\t<p class="blog-years">${years.map(y => `<a href="#y${y}">${y}</a>`).join(' &middot; ')}</p>\n`;
+  }
+  let lastYear = null;
+  for (const p of posts) {
+    const year = (p.date || '').slice(0, 4);
+    if (year !== lastYear) { h += `\t\t<h3 class="year-heading" id="y${year}">${year}</h3>\n`; lastYear = year; }
+    const cat = cats[p.type];
+    const id = p.id || `${p.date}-${slug(p.title)}`;
+    const meta = [dateLong(p.date)];
+    if (cat) meta.push(`<span class="tag">${cat.icon ? cat.icon + ' ' : ''}${esc(cat.name)}</span>`);
+    if (p.location) meta.push(esc(p.location));
+    h += `
+\t\t<article class="post" id="${esc(id)}">
+\t\t\t<p class="post-meta">${meta.join(' &middot; ')}</p>
+\t\t\t<h4><a href="#${esc(id)}">${p.title}</a></h4>
+${p.titleKr ? `\t\t\t<p class="post-kr">${p.titleKr}</p>\n` : ''}${p.text ? `\t\t\t<div class="post-body">${p.text}</div>\n` : ''}`;
+    const photos = (p.photos || []).filter(x => x && x.url);
+    if (photos.length) {
+      h += `\t\t\t<div class="gallery n${Math.min(photos.length, 3)}">\n`;
+      for (const ph of photos) {
+        h += `\t\t\t\t<figure><a href="${esc(ph.url)}" target="_blank"><img src="${esc(ph.url)}" alt="${esc(ph.caption || p.title)}" loading="lazy"></a>${ph.caption ? `<figcaption>${ph.caption}</figcaption>` : ''}</figure>\n`;
+      }
+      h += `\t\t\t</div>\n`;
+    }
+    h += `\t\t</article>\n`;
+  }
+  h += `\t</div>\n`;
+  return h + foot(s);
+}
+
 function build() {
   const data = JSON.parse(fs.readFileSync(DATA, 'utf8'));
   const pages = {
@@ -323,6 +393,7 @@ function build() {
     'publications.html': pagePublications,
     'courses.html': pageCourses,
     'news.html': pageNews,
+    'blog.html': pageBlog,
   };
   for (const [file, fn] of Object.entries(pages)) {
     fs.writeFileSync(path.join(ROOT, file), fn(data), 'utf8');

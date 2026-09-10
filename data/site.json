@@ -31,7 +31,13 @@
       "email": "gho3283@hufs.ac.kr",
       "copyright": "&copy; HUFS Financial Engineering Lab."
     },
-    "recentCount": 3
+    "recentCount": 3,
+    "blog": {
+      "label": "Blog",
+      "enabled": true,
+      "external": "",
+      "intro": "Photos and short notes from lab life: conferences, seminars, gatherings, and small milestones."
+    }
   },
   "professor": {
     "name": "Hyeongwoo Kong",
@@ -345,6 +351,36 @@
       "date": "2025-03",
       "short": "The lab is established at HUFS.",
       "text": "Prof. Hyeongwoo Kong joins the Division of Finance &amp; AI at HUFS as Assistant Professor. The Financial Engineering Lab. is established."
+    }
+  ],
+  "blogCategories": {
+    "conference": {
+      "name": "Conference",
+      "icon": "🎓"
+    },
+    "seminar": {
+      "name": "Seminar",
+      "icon": "📚"
+    },
+    "social": {
+      "name": "Social",
+      "icon": "🎉"
+    },
+    "milestone": {
+      "name": "Milestone",
+      "icon": "🎊"
+    }
+  },
+  "blog": [
+    {
+      "id": "2026-09-website",
+      "date": "2026-09-10",
+      "type": "milestone",
+      "title": "Lab website goes live",
+      "titleKr": "연구실 홈페이지 오픈",
+      "location": "Yongin",
+      "text": "<p>연구실 홈페이지를 열었습니다. 논문, 프로젝트, 강의 정보와 함께 이 블로그에는 학회 참석이나 연구실 행사 같은 소식을 사진과 함께 올릴 예정입니다.</p>",
+      "photos": []
     }
   ]
 }

@@ -110,6 +110,7 @@ function validateData(d) {
   for (const k of need) if (!(k in d)) return `missing "${k}"`;
   for (const k of ['members', 'research', 'projects', 'publications', 'courses', 'news']) if (!Array.isArray(d[k])) return `"${k}" must be a list`;
   for (const n of d.news) if (!/^\d{4}-\d{2}$/.test(n.date || '')) return `news date must be YYYY-MM (got "${n.date}")`;
+  for (const p of (d.blog || [])) if (!/^\d{4}-\d{2}-\d{2}$/.test(p.date || '')) return `blog date must be YYYY-MM-DD (got "${p.date}")`;
   for (const p of d.publications) if (!p.title) return 'a publication has no title';
   return null;
 }
@@ -178,9 +179,11 @@ async function handle(req, res) {
     if (!name || !IMAGE_EXT.has(ext)) return json(res, 400, { error: 'image files only (jpg, png, gif, svg, webp)' });
     const buf = Buffer.from(String(d.data || ''), 'base64');
     if (!buf.length || buf.length > 5 * 1024 * 1024) return json(res, 400, { error: 'file must be under 5 MB' });
-    fs.mkdirSync(IMAGES, { recursive: true });
-    fs.writeFileSync(path.join(IMAGES, name), buf);
-    return json(res, 200, { ok: true, path: 'images/' + name });
+    const folder = String(d.folder || '').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 20);
+    const dir = folder ? path.join(IMAGES, folder) : IMAGES;
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, name), buf);
+    return json(res, 200, { ok: true, path: 'images/' + (folder ? folder + '/' : '') + name });
   }
   if (p === '/api/password' && req.method === 'POST') {
     let d;
