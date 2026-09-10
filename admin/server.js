@@ -15,6 +15,8 @@ const IMAGES = path.join(ROOT, 'images');
 
 const MAX_BODY = 8 * 1024 * 1024;
 const SESSION_TTL = 12 * 60 * 60 * 1000;
+const MIN_PASSWORD = 8;
+const DEFAULT_PASSWORD = 'felab';
 const IMAGE_EXT = new Set(['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp']);
 // Files the preview may serve from the site root: pages, styles, and the
 // generated favicon, sitemap, feed and BibTeX. admin/ and data/ stay blocked
@@ -23,14 +25,20 @@ const ROOT_EXT = new Set(['.html', '.css', '.ico', '.xml', '.txt', '.bib']);
 
 // Config / password ----------------------------------------------------------
 
-function hash(pw, salt) { return crypto.createHash('sha256').update(salt + pw).digest('hex'); }
+// scrypt is slow on purpose, so a leaked config.json cannot be brute-forced
+// quickly. Configs written by earlier versions hold a plain SHA-256 and are
+// upgraded the first time their password is used.
+function hash(pw, salt) { return crypto.scryptSync(pw, salt, 32).toString('hex'); }
+function legacyHash(pw, salt) { return crypto.createHash('sha256').update(salt + pw).digest('hex'); }
+
+function saveConfig() { fs.writeFileSync(CONFIG, JSON.stringify(config, null, 2)); }
 
 function loadConfig() {
   if (!fs.existsSync(CONFIG)) {
-    const salt = crypto.randomBytes(8).toString('hex');
-    const cfg = { host: '127.0.0.1', port: 8080, salt, passwordHash: hash('felab', salt) };
+    const salt = crypto.randomBytes(16).toString('hex');
+    const cfg = { host: '127.0.0.1', port: 8080, salt, passwordHash: hash(DEFAULT_PASSWORD, salt), kdf: 'scrypt' };
     fs.writeFileSync(CONFIG, JSON.stringify(cfg, null, 2));
-    console.log('Created admin/config.json with the initial password: felab');
+    console.log(`Created admin/config.json with the initial password: ${DEFAULT_PASSWORD}`);
     console.log('Change it in the admin page after logging in.');
     return cfg;
   }
@@ -39,55 +47,99 @@ function loadConfig() {
 let config = loadConfig();
 
 function checkPassword(pw) {
-  const a = Buffer.from(hash(pw, config.salt));
+  const legacy = config.kdf !== 'scrypt';
+  const a = Buffer.from((legacy ? legacyHash : hash)(pw, config.salt));
   const b = Buffer.from(config.passwordHash);
-  return a.length === b.length && crypto.timingSafeEqual(a, b);
+  const ok = a.length === b.length && crypto.timingSafeEqual(a, b);
+  if (ok && legacy) setPassword(pw);
+  return ok;
 }
 
 function setPassword(pw) {
-  config.salt = crypto.randomBytes(8).toString('hex');
+  config.salt = crypto.randomBytes(16).toString('hex');
   config.passwordHash = hash(pw, config.salt);
-  fs.writeFileSync(CONFIG, JSON.stringify(config, null, 2));
+  config.kdf = 'scrypt';
+  saveConfig();
+}
+
+// Wrong guesses are slowed down: a short pause after each, and a lockout after
+// several in a row. The server only listens locally, but a page open in the
+// same browser could otherwise try passwords as fast as it likes.
+const login = { failures: 0, lockedUntil: 0 };
+const LOCK_AFTER = 5, LOCK_MS = 60 * 1000;
+function loginLocked() { return login.lockedUntil > Date.now(); }
+function noteLogin(ok) {
+  if (ok) { login.failures = 0; return; }
+  login.failures++;
+  if (login.failures >= LOCK_AFTER) { login.failures = 0; login.lockedUntil = Date.now() + LOCK_MS; }
 }
 
 // Sessions ---------------------------------------------------------------------
 
 const sessions = new Map();
 function newSession() {
+  for (const [t, exp] of sessions) if (exp < Date.now()) sessions.delete(t);
   const t = crypto.randomBytes(24).toString('hex');
   sessions.set(t, Date.now() + SESSION_TTL);
   return t;
-}
-function sessionOk(req) {
-  const m = /(?:^|;\s*)sid=([a-f0-9]+)/.exec(req.headers.cookie || '');
-  if (!m) return false;
-  const exp = sessions.get(m[1]);
-  if (!exp || exp < Date.now()) { sessions.delete(m[1]); return false; }
-  return true;
 }
 function sessionToken(req) {
   const m = /(?:^|;\s*)sid=([a-f0-9]+)/.exec(req.headers.cookie || '');
   return m ? m[1] : null;
 }
+function sessionOk(req) {
+  const t = sessionToken(req);
+  const exp = t && sessions.get(t);
+  if (!exp) return false;
+  if (exp < Date.now()) { sessions.delete(t); return false; }
+  return true;
+}
+
+// Request origin ---------------------------------------------------------------
+
+// The server is reachable only from this machine, but a browser on this
+// machine can be pointed at it from anywhere: by a hostname an attacker made
+// resolve to 127.0.0.1 (DNS rebinding), or by a page on another local port
+// (a dev server) posting to it. Both are refused here: the Host header must
+// name this server, and a POST must come from this origin, as JSON.
+function ownOrigin(req) {
+  const host = String(req.headers.host || '').toLowerCase();
+  const name = host.replace(/:\d+$/, '');
+  const port = (host.match(/:(\d+)$/) || [])[1] || '80';
+  return ['127.0.0.1', 'localhost', '[::1]', config.host].includes(name) && Number(port) === config.port;
+}
+function sameOrigin(req) {
+  const origin = req.headers.origin;
+  if (!origin) return true; // same-origin fetch()/forms may omit it; cross-site browsers never do
+  const m = /^https?:\/\/([^/]+)$/i.exec(origin);
+  return !!m && m[1].toLowerCase() === String(req.headers.host || '').toLowerCase();
+}
+function isJson(req) { return /^application\/json\b/i.test(req.headers['content-type'] || ''); }
 
 // Helpers ----------------------------------------------------------------------
 
 const MIME = {
   '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8',
-  '.js': 'text/javascript; charset=utf-8', '.json': 'application/json; charset=utf-8',
   '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.gif': 'image/gif',
   '.svg': 'image/svg+xml', '.webp': 'image/webp', '.ico': 'image/x-icon',
   '.xml': 'application/xml; charset=utf-8', '.txt': 'text/plain; charset=utf-8',
   '.bib': 'text/plain; charset=utf-8',
 };
 
+const BASE_HEADERS = {
+  'Cache-Control': 'no-store',
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'Referrer-Policy': 'no-referrer',
+};
+
 function send(res, code, body, type) {
-  res.writeHead(code, { 'Content-Type': type || 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' });
+  res.writeHead(code, { ...BASE_HEADERS, 'Content-Type': type || 'text/plain; charset=utf-8' });
   res.end(body);
 }
 function json(res, code, obj) { send(res, code, JSON.stringify(obj), 'application/json; charset=utf-8'); }
 function redirect(res, to, cookie) {
-  const h = { Location: to };
+  const h = { ...BASE_HEADERS, Location: to };
   if (cookie) h['Set-Cookie'] = cookie;
   res.writeHead(302, h); res.end();
 }
@@ -144,12 +196,18 @@ async function handle(req, res) {
   const url = new URL(req.url, 'http://x');
   const p = url.pathname;
 
+  if (!ownOrigin(req)) return send(res, 421, 'Wrong host');
+  if (req.method === 'POST' && !sameOrigin(req)) return send(res, 403, 'Cross-origin request refused');
+  if (req.method === 'POST' && p.startsWith('/api/') && !isJson(req)) return json(res, 415, { error: 'expected application/json' });
+
   if (p === '/admin/login') {
     if (req.method === 'GET') return send(res, 200, loginPage(''), 'text/html; charset=utf-8');
+    if (loginLocked()) return send(res, 429, loginPage('Too many attempts. Try again in a minute.'), 'text/html; charset=utf-8');
     const body = new URLSearchParams((await readBody(req)).toString());
-    if (checkPassword(body.get('password') || '')) {
-      return redirect(res, '/admin', `sid=${newSession()}; HttpOnly; SameSite=Strict; Path=/`);
-    }
+    const ok = checkPassword(body.get('password') || '');
+    noteLogin(ok);
+    if (ok) return redirect(res, '/admin', `sid=${newSession()}; HttpOnly; SameSite=Strict; Path=/`);
+    await new Promise(r => setTimeout(r, 1000));
     return send(res, 401, loginPage('Wrong password.'), 'text/html; charset=utf-8');
   }
   if (p === '/admin/logout') {
@@ -197,7 +255,8 @@ async function handle(req, res) {
     let d;
     try { d = JSON.parse((await readBody(req)).toString('utf8')); } catch (e) { return json(res, 400, { error: 'invalid JSON' }); }
     if (!checkPassword(String(d.current || ''))) return json(res, 403, { error: 'current password is wrong' });
-    if (String(d.next || '').length < 4) return json(res, 400, { error: 'new password must be at least 4 characters' });
+    if (String(d.next || '').length < MIN_PASSWORD) return json(res, 400, { error: `new password must be at least ${MIN_PASSWORD} characters` });
+    if (String(d.next) === DEFAULT_PASSWORD) return json(res, 400, { error: 'choose a password other than the initial one' });
     setPassword(String(d.next));
     return json(res, 200, { ok: true });
   }
