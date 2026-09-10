@@ -685,3 +685,10 @@ dl.projects dd {
 .person .period {
 	color: #555;
 }
+
+/* A single gallery image keeps its own proportions (screenshots, posters) */
+
+.gallery.n1 img {
+	aspect-ratio: auto;
+	height: auto;
+}
