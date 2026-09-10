@@ -692,3 +692,30 @@ dl.projects dd {
 	aspect-ratio: auto;
 	height: auto;
 }
+
+/* Post references */
+
+.post-links {
+	margin-top: 22px;
+	padding-top: 12px;
+	border-top: 1px solid #E5E5E5;
+}
+
+.post-links h5 {
+	margin: 0 0 6px;
+	font-size: 0.85em;
+	font-weight: normal;
+	text-transform: uppercase;
+	letter-spacing: 1.5px;
+	color: #555;
+}
+
+.post-links ul {
+	margin: 0;
+	padding-left: 18px;
+	font-size: 0.92em;
+}
+
+.post-links li {
+	margin-bottom: 4px;
+}

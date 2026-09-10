@@ -144,6 +144,7 @@ const SECTIONS = [
     { k: 'summary', l: 'Card summary (optional, plain text; the first sentences of the body are used if empty)' },
     { k: 'text', l: 'Body (HTML allowed, use <p> for paragraphs)', t: 'html', tall: true },
     { k: 'photos', l: 'Photos (one per line: path | caption). The first photo is the card thumbnail. Use the file picker to upload several at once.', t: 'photos' },
+    { k: 'links', l: 'References (one per line: label url)', t: 'pairs' },
     { k: 'id', l: 'Anchor id (optional, auto from date and title)' },
   ], extra: [
     { path: 'blogCategories', k: '', l: 'Categories (one per line: key emoji name — e.g. "conference 🎓 Conference")', t: 'cats' },

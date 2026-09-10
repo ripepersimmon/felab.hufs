@@ -347,6 +347,11 @@
       "text": "Preprint \"Seq2Synth: Benchmarking Temporal Fidelity in Synthetic Sequential Tabular Data\" posted on arXiv."
     },
     {
+      "date": "2026-06",
+      "text": "Undergraduate researcher <u>Sahong Park</u> gave an oral presentation, \"GerberShrink: Correlation-based Portfolio Optimization\", at the Financial AI special session of the 2026 Spring Joint Conference of KORMS, KIIE, and the Korea Society for Simulation, held at HICO in Gyeongju. [<a href=\"blog/2026-06-kiie.html\">blog</a>]",
+      "short": "Sahong Park presented at the Financial AI session of the 2026 Spring Joint Conference."
+    },
+    {
       "date": "2025-12",
       "short": "Paper on high-cost patient prediction published in <i>EAAI</i>.",
       "text": "\"Machine Learning for Disease-Specific Prediction of High-Cost Patients\" published in <i>Engineering Applications of Artificial Intelligence</i>. [<a href=\"https://doi.org/10.1016/j.engappai.2025.112200\" target=\"_blank\">paper</a>]"
@@ -391,6 +396,27 @@
         }
       ],
       "summary": "연구실 홈페이지를 열었습니다. 블로그 페이지에는 학회 참석, 내부 행사 등 연구실 소식을 사진과 함께 올릴 예정입니다."
+    },
+    {
+      "id": "2026-06-kiie",
+      "date": "2026-06-04",
+      "type": "conference",
+      "title": "2026 춘계공동학술대회 참가",
+      "titleKr": "2026 KIIE/KORMS Spring Joint Conference",
+      "location": "경주 화백컨벤션센터 (HICO)",
+      "summary": "한국경영과학회, 대한산업공학회, 한국시뮬레이션학회가 공동 주최한 2026 춘계공동학술대회에 참가했습니다. 금융 인공지능 특별 세션에서 학부연구생 박사홍이 구두 발표를 했습니다.",
+      "text": "<p>2026년 6월 4일부터 5일까지 경주 화백컨벤션센터(HICO)에서 열린 2026 춘계공동학술대회에 참가했습니다. 한국경영과학회, 대한산업공학회, 한국시뮬레이션학회가 공동 주최한 학술대회입니다.</p><p>금융 인공지능 특별 세션에서 학부연구생 박사홍이 <i>GerberShrink: Correlation-based Portfolio Optimization</i>을 구두 발표했습니다. 이 세션에는 KAIST, 한양대, 고려대, 성균관대, 한국외대, UNIST 여섯 개 연구실이 참여해 다양한 주제를 발표했고, 세션이 끝난 뒤에는 경주에서 연구실 간 교류 모임이 이어졌습니다.</p>",
+      "photos": [],
+      "links": [
+        {
+          "label": "박사홍 학부연구생 발표 후기 (LinkedIn)",
+          "url": "https://www.linkedin.com/posts/sahong_2026-%EC%B6%98%EA%B3%84%EA%B3%B5%EB%8F%99%ED%95%99%EC%88%A0%EB%8C%80%ED%9A%8C-%EC%98%A4%EB%8A%98-%ED%95%9C%EA%B5%AD%EA%B2%BD%EC%98%81%EA%B3%BC%ED%95%99%ED%9A%8C-%EB%8C%80%ED%95%9C%EC%82%B0%EC%97%85%EA%B3%B5%ED%95%99%ED%9A%8C-activity-7468615110991757312-TFU2"
+        },
+        {
+          "label": "금융 인공지능 특별 세션 후기, 이용재 교수 (LinkedIn)",
+          "url": "https://www.linkedin.com/posts/yongjae-lee-548982107_2026%EB%85%84-%EC%B6%98%EA%B3%84-%EA%B2%BD%EC%98%81%EA%B3%BC%ED%95%99%ED%9A%8C%EC%82%B0%EC%97%85%EA%B3%B5%ED%95%99%ED%9A%8C-%EA%B3%B5%EB%8F%99-%ED%95%99%EC%88%A0%EB%8C%80%ED%9A%8C%EC%97%90%EC%84%9C-%EA%B8%88%EC%9C%B5-%EC%9D%B8%EA%B3%B5%EC%A7%80%EB%8A%A5-%ED%8A%B9%EB%B3%84-activity-7468572383843414016-dO8_"
+        }
+      ]
     }
   ]
 }

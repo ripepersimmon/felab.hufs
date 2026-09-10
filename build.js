@@ -426,6 +426,14 @@ ${p.titleKr ? `\t\t\t<p class="post-kr">${p.titleKr}</p>\n` : ''}${p.text ? `\t\
     }
     h += `\t\t\t</div>\n`;
   }
+  const links = (p.links || []).filter(x => x && x.url);
+  if (links.length) {
+    h += `\t\t\t<div class="post-links">\n\t\t\t\t<h5>References</h5>\n\t\t\t\t<ul>\n`;
+    for (const l of links) {
+      h += `\t\t\t\t\t<li><a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label || l.url)}</a></li>\n`;
+    }
+    h += `\t\t\t\t</ul>\n\t\t\t</div>\n`;
+  }
   h += `\t\t</article>\n\t</div>\n`;
   return h + foot(s);
 }
