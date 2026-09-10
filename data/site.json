@@ -3,6 +3,8 @@
     "title": "Financial Engineering Lab.",
     "subtitle": "금융공학연구실 · Division of Finance &amp; AI, Hankuk University of Foreign Studies",
     "titleSuffix": "HUFS",
+    "url": "https://ripepersimmon.github.io/felab.hufs",
+    "ogImage": "images/og.png",
     "notice": {
       "enabled": true,
       "html": "<b>We are recruiting.</b> Undergraduate and graduate students interested in finance and machine learning are welcome to join. See <a href=\"team.html#join\">how to apply</a>."
@@ -350,7 +352,7 @@
     },
     {
       "date": "2026-06",
-      "text": "Undergraduate researcher <u>Sahong Park</u> gave an oral presentation, \"GerberShrink: Correlation-based Portfolio Optimization\", at the Financial AI special session of the 2026 Spring Joint Conference of KORMS, KIIE, and the Korea Society for Simulation, held at HICO in Gyeongju. [<a href=\"blog/2026-06-kiie.html\">blog</a>]",
+      "text": "Undergraduate researcher Sahong Park gave an oral presentation, \"GerberShrink: Correlation-based Portfolio Optimization\", at the Financial AI special session of the 2026 Spring Joint Conference of KORMS, KIIE, and the Korea Society for Simulation, held at HICO in Gyeongju. [<a href=\"blog/2026-06-kiie.html\">blog</a>]",
       "short": "Sahong Park presented at the Financial AI session of the 2026 Spring Joint Conference."
     },
     {

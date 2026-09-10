@@ -72,6 +72,8 @@ const SECTIONS = [
   { id: 'general', label: 'General', kind: 'object', path: 'site', fields: [
     { k: 'title', l: 'Site title' },
     { k: 'subtitle', l: 'Subtitle (HTML allowed)' },
+    { k: 'url', l: 'Site address, no trailing slash (used for link previews, sitemap.xml and the RSS feed — change this one line when the site moves to a new domain)' },
+    { k: 'ogImage', l: 'Link preview image (1200×630)', t: 'photo' },
     { k: 'notice.enabled', l: 'Show notice box on Home', t: 'checkbox' },
     { k: 'notice.html', l: 'Notice text (HTML allowed)', t: 'html' },
     { k: 'about', l: 'About paragraphs (one paragraph per line, HTML allowed)', t: 'lines', tall: true },
@@ -121,7 +123,7 @@ const SECTIONS = [
     { k: 'venue', l: 'Journal / conference name' },
     { k: 'note', l: 'Note shown after the venue, e.g. JCR Q1' },
     { k: 'links', l: 'Links (one per line: label url — e.g. paper https://doi.org/...)', t: 'pairs' },
-  ], help: 'Publications are grouped by year in the order listed here. Theses go under a separate heading.' },
+  ], help: 'Publications are grouped by year in the order listed here. Theses go under a separate heading. The button below looks up how often each paper has been cited (OpenAlex) and stores the counts in data/citations.json.', fetchCitations: true },
   { id: 'courses', label: 'Courses', kind: 'list', path: 'courses', legend: c => (c.semester ? c.semester + ' — ' : '') + (c.title || 'New course'), fields: [
     { k: 'semester', l: 'Semester', g: 'grid3' },
     { k: 'title', l: 'Course', g: 'grid3' },
@@ -315,6 +317,15 @@ function renderAll() {
         const d = await (await fetch('/api/data')).json(); DATA = d; renderAll(); show('courses');
         setStatus(`Fetched ${j.count} courses and rebuilt the site.`, 'ok');
       } }, 'Fetch from HUFS timetable')));
+    }
+    if (sec.fetchCitations) {
+      p.append(el('p', {}, el('button', { class: 'add', type: 'button', onclick: async () => {
+        setStatus('Looking up citation counts on OpenAlex…');
+        const r = await fetch('/api/fetch-citations', { method: 'POST' });
+        const j = await r.json();
+        if (!r.ok) return setStatus(j.error || 'fetch failed', 'err');
+        setStatus(`Updated ${j.found} publications, ${j.total} citations in total.`, 'ok');
+      } }, 'Refresh citation counts')));
     }
     if (sec.extra) {
       for (const f of sec.extra) {

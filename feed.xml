@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+	<title>Financial Engineering Lab. — Blog</title>
+	<link>https://ripepersimmon.github.io/felab.hufs/blog.html</link>
+	<atom:link href="https://ripepersimmon.github.io/felab.hufs/feed.xml" rel="self" type="application/rss+xml"/>
+	<description>Photos and short notes from lab life: conferences, seminars, gatherings, and small milestones.</description>
+	<language>ko</language>
+	<item>
+		<title>Lab website goes live</title>
+		<link>https://ripepersimmon.github.io/felab.hufs/blog/2026-09-website.html</link>
+		<guid isPermaLink="true">https://ripepersimmon.github.io/felab.hufs/blog/2026-09-website.html</guid>
+		<pubDate>Thu, 10 Sep 2026 09:00:00 GMT</pubDate>
+		<description>연구실 홈페이지를 열었습니다. 블로그 페이지에는 학회 참석, 내부 행사 등 연구실 소식을 사진과 함께 올릴 예정입니다.</description>
+	</item>
+	<item>
+		<title>2026 춘계공동학술대회 참가</title>
+		<link>https://ripepersimmon.github.io/felab.hufs/blog/2026-06-kiie.html</link>
+		<guid isPermaLink="true">https://ripepersimmon.github.io/felab.hufs/blog/2026-06-kiie.html</guid>
+		<pubDate>Thu, 04 Jun 2026 09:00:00 GMT</pubDate>
+		<description>한국경영과학회, 대한산업공학회, 한국시뮬레이션학회가 공동 주최한 2026 춘계공동학술대회에 참가했습니다. 금융 인공지능 특별 세션에서 학부연구생 박사홍이 구두 발표를 했습니다.</description>
+	</item>
+</channel>
+</rss>

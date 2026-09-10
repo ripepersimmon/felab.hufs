@@ -16,6 +16,10 @@ const IMAGES = path.join(ROOT, 'images');
 const MAX_BODY = 8 * 1024 * 1024;
 const SESSION_TTL = 12 * 60 * 60 * 1000;
 const IMAGE_EXT = new Set(['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp']);
+// Files the preview may serve from the site root: pages, styles, and the
+// generated favicon, sitemap, feed and BibTeX. admin/ and data/ stay blocked
+// by the path checks in serveStatic.
+const ROOT_EXT = new Set(['.html', '.css', '.ico', '.xml', '.txt', '.bib']);
 
 // Config / password ----------------------------------------------------------
 
@@ -73,6 +77,8 @@ const MIME = {
   '.js': 'text/javascript; charset=utf-8', '.json': 'application/json; charset=utf-8',
   '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.gif': 'image/gif',
   '.svg': 'image/svg+xml', '.webp': 'image/webp', '.ico': 'image/x-icon',
+  '.xml': 'application/xml; charset=utf-8', '.txt': 'text/plain; charset=utf-8',
+  '.bib': 'text/plain; charset=utf-8',
 };
 
 function send(res, code, body, type) {
@@ -121,7 +127,7 @@ function serveStatic(req, res, urlPath) {
   const ext = path.extname(rel).toLowerCase();
   const allowed = rel.startsWith('/images/') ? IMAGE_EXT.has(ext)
     : rel.startsWith('/blog/') ? ext === '.html'
-    : (ext === '.html' || ext === '.css');
+    : ROOT_EXT.has(ext);
   const file = path.normalize(path.join(ROOT, rel));
   if (!allowed || !file.startsWith(ROOT + path.sep) || file.includes(path.sep + 'admin' + path.sep) || file.includes(path.sep + 'data' + path.sep)) {
     return send(res, 404, 'Not found');
@@ -200,6 +206,15 @@ async function handle(req, res) {
       const { updateSite } = require('../fetch-courses.js');
       const courses = await updateSite();
       return json(res, 200, { ok: true, count: courses.length, courses });
+    } catch (e) { return json(res, 500, { error: e.message }); }
+  }
+  if (p === '/api/fetch-citations' && req.method === 'POST') {
+    try {
+      const { updateSite } = require('../fetch-citations.js');
+      const r = await updateSite();
+      const total = Object.values(r.works).reduce((n, w) => n + w.count, 0);
+      build();
+      return json(res, 200, { ok: true, found: r.found, missing: r.missing, total });
     } catch (e) { return json(res, 500, { error: e.message }); }
   }
   if (p === '/api/build' && req.method === 'POST') {

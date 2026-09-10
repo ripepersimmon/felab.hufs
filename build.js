@@ -49,16 +49,54 @@ function linksHtml(links) {
   return `<p class="links">${a}</p>`;
 }
 
-function head(site, pageTitle, baseHref, docTitle) {
+// Absolute URL for a site-relative path. Everything that has to be absolute
+// (canonical, og:url, sitemap, feed) goes through here, so moving the site to
+// another domain is a one-line change to site.url.
+function abs(site, rel) {
+  const base = String(site.url || '').replace(/\/+$/, '');
+  return base + '/' + String(rel || '').replace(/^\/+/, '');
+}
+
+// One-line summary for search results and link previews.
+function metaDesc(text, limit = 200) {
+  // stripTags turns each tag into a space, which can leave " ," where a link
+  // ended mid-sentence.
+  const t = stripTags(text).replace(/\s+([,.;:)])/g, '$1').replace(/\(\s+/g, '(');
+  return t.length > limit ? t.slice(0, limit - 1).replace(/\s+\S*$/, '') + '…' : t;
+}
+
+function head(site, pageTitle, opts) {
+  const o = opts || {};
+  const baseHref = o.base;
+  const docTitle = o.docTitle;
   const t = docTitle ? `${docTitle} — ${site.title}` : pageTitle ? `${pageTitle} — ${site.title}, ${site.titleSuffix}` : `${site.title} — ${site.titleSuffix}`;
+  const desc = metaDesc(o.desc || '');
+  const path = o.path || 'index.html';
+  const canonical = site.url ? abs(site, path) : '';
+  const image = site.url ? abs(site, o.image || site.ogImage || 'images/og.png') : '';
+  const meta = [];
+  if (desc) meta.push(`<meta name="description" content="${esc(desc)}">`);
+  if (canonical) meta.push(`<link rel="canonical" href="${esc(canonical)}">`);
+  meta.push(`<meta property="og:type" content="${o.type || 'website'}">`);
+  meta.push(`<meta property="og:site_name" content="${esc(site.title)}">`);
+  meta.push(`<meta property="og:title" content="${esc(docTitle || t)}">`);
+  if (desc) meta.push(`<meta property="og:description" content="${esc(desc)}">`);
+  if (canonical) meta.push(`<meta property="og:url" content="${esc(canonical)}">`);
+  if (image) meta.push(`<meta property="og:image" content="${esc(image)}">`);
+  meta.push(`<meta name="twitter:card" content="summary_large_image">`);
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${t}</title>
 ${baseHref ? `<base href="${baseHref}">
-` : ""}<link rel="stylesheet" href="style.css?v=${CSS_VERSION}">
+` : ""}<title>${t}</title>
+${meta.join('\n')}
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" href="images/favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+<link rel="alternate" type="application/rss+xml" title="${esc(site.title)} — ${esc((site.blog && site.blog.label) || 'Blog')}" href="feed.xml">
+<link rel="stylesheet" href="style.css?v=${CSS_VERSION}">
 </head>
 <body>
 <div id="wrapper">
@@ -120,14 +158,99 @@ function authorsHtml(authors, data) {
   }).filter(Boolean).join(', ');
 }
 
-function pubLi(p, data) {
+// Citation counts come from data/citations.json, refreshed by fetch-citations.js.
+// The file is optional: with no file, publications simply show no count.
+function citeCount(p, cites) {
+  const key = (p.links || []).map(l => l.url)
+    .map(u => (u.match(/doi\.org\/(.+)$/) || [])[1] || (u.match(/arxiv\.org\/(?:abs|pdf)\/([\d.]+)/) || [])[1])
+    .find(Boolean);
+  if (!key || !cites) return null;
+  const e = cites[key.toLowerCase()];
+  return e && e.count > 0 ? e : null;
+}
+
+function pubLi(p, data, cites) {
   const venue = p.type === 'thesis' ? p.venue : `<i>${p.venue}</i>`;
   const note = p.note ? ` (${p.note})` : '';
   const links = (p.links || []).map(l => ` [<a href="${esc(l.url)}" target="_blank">${esc(l.label || 'paper')}</a>]`).join('');
-  return `<li>${authorsHtml(p.authors, data)} (${p.year}). ${p.title}. ${venue}${note}.${links}</li>`;
+  const c = citeCount(p, cites);
+  const cited = c ? ` <span class="cited">Cited by <a href="${esc(c.url)}" target="_blank">${c.count}</a></span>` : '';
+  const bib = `<details class="bib"><summary>bib</summary><pre>${esc(bibEntry(p))}</pre></details>`;
+  return `<li>${authorsHtml(p.authors, data)} (${p.year}). ${p.title}. ${venue}${note}.${links}${cited}${bib}</li>`;
 }
 
 const LEGEND = '<p class="legend"><b>Bold</b>: lab director &middot; <u>Underlined</u>: lab members &middot; &dagger;: corresponding author</p>';
+
+// Underlines lab member names wherever they appear in a piece of hand-written
+// HTML (News entries). Only text between tags is touched, so names inside an
+// href or an attribute are left alone, and a name already inside <u> is not
+// wrapped twice.
+function markMembers(html, data) {
+  const names = data.members.map(m => m.name.trim()).filter(Boolean)
+    .sort((a, b) => b.length - a.length);
+  if (!names.length) return html;
+  const re = new RegExp('(?<![\\w-])(' + names.map(n => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')(?![\\w-])', 'g');
+  let depth = 0;
+  return String(html).split(/(<[^>]+>)/).map(seg => {
+    if (seg.startsWith('<')) {
+      if (/^<u[\s>]/i.test(seg)) depth++;
+      else if (/^<\/u\s*>/i.test(seg)) depth = Math.max(0, depth - 1);
+      return seg;
+    }
+    return depth > 0 ? seg : seg.replace(re, '<u>$1</u>');
+  }).join('');
+}
+
+// BibTeX -------------------------------------------------------------------
+
+function lastName(author) {
+  const n = author.trim().replace(/[†*]$/, '').trim();
+  const parts = n.split(/\s+/);
+  return parts[parts.length - 1] || n;
+}
+
+function bibKey(p) {
+  const authors = p.authors.split(',');
+  const first = lastName(authors[0] || 'anon').toLowerCase().replace(/[^a-z]/g, '');
+  const STOP = ['with', 'from', 'under', 'using', 'their', 'into', 'when', 'that', 'this',
+    'have', 'does', 'keep', 'your', 'about', 'what', 'which', 'where', 'only', 'more',
+    'such', 'than', 'then', 'they', 'them', 'been', 'were', 'will', 'some', 'toward'];
+  const word = (stripTags(p.title).toLowerCase().match(/[a-z]{4,}/g) || ['work'])
+    .find(w => !STOP.includes(w)) || 'work';
+  return `${first}${p.year}${word}`;
+}
+
+function bibEntry(p) {
+  const authors = p.authors.split(',').map(a => a.trim().replace(/[†*]$/, '').trim()).filter(Boolean).join(' and ');
+  const doi = (p.links || []).map(l => l.url).find(u => /doi\.org\//.test(u));
+  const arx = (p.links || []).map(l => l.url).find(u => /arxiv\.org\//.test(u));
+  const f = [['author', authors], ['title', stripTags(p.title)], ['year', String(p.year)]];
+  let type = 'article';
+  if (p.type === 'journal') { type = 'article'; f.push(['journal', p.venue]); }
+  else if (p.type === 'conference') { type = 'inproceedings'; f.push(['booktitle', p.venue]); }
+  else if (p.type === 'thesis') {
+    type = /ph\.?d/i.test(p.venue) ? 'phdthesis' : 'mastersthesis';
+    const m = p.venue.match(/,\s*([^,]+)$/);
+    f.push(['school', m ? m[1].trim() : p.venue]);
+  } else {
+    type = 'misc';
+    if (arx) {
+      const id = (arx.match(/arxiv\.org\/(?:abs|pdf)\/([\d.]+)/) || [])[1];
+      if (id) { f.push(['eprint', id], ['archivePrefix', 'arXiv']); }
+      f.push(['howpublished', 'arXiv preprint']);
+    } else f.push(['howpublished', p.venue]);
+  }
+  if (doi) f.push(['doi', doi.replace(/^https?:\/\/(dx\.)?doi\.org\//, '')]);
+  const used = f.filter(([, v]) => v);
+  const pad = Math.max(...used.map(([k]) => k.length));
+  const body = used.map(([k, v]) => `  ${k.padEnd(pad)} = {${String(v).replace(/&amp;/g, '&')}}`).join(',\n');
+  return `@${type}{${bibKey(p)},\n${body}\n}`;
+}
+
+function bibFile(data) {
+  const header = `% BibTeX entries for publications of the ${stripTags(data.site.title)}\n% ${data.site.url || ''}\n\n`;
+  return header + data.publications.map(bibEntry).join('\n\n') + '\n';
+}
 
 // News ---------------------------------------------------------------------
 
@@ -140,7 +263,7 @@ function pageIndex(data) {
   const s = data.site;
   const selected = data.publications.filter(p => p.selected);
   const recent = data.news.slice(0, s.recentCount || 3);
-  let h = head(s, '');
+  let h = head(s, '', { desc: s.about[0], path: 'index.html' });
   h += `
 \t<div class="columns">
 \t\t<div class="main">
@@ -172,7 +295,7 @@ ${selected.map(p => '\t\t\t\t\t' + pubLi(p, data)).join('\n')}
 \t\t\t</div>
 \t\t\t<div class="section">
 \t\t\t\t<h2>Recent</h2>
-${recent.map(n => `\t\t\t\t<p>${monthShort(n.date)} &mdash; ${n.short || n.text}</p>`).join('\n')}
+${recent.map(n => `\t\t\t\t<p>${monthShort(n.date)} &mdash; ${markMembers(n.short || n.text, data)}</p>`).join('\n')}
 \t\t\t\t<p><a href="news.html">More news</a></p>
 \t\t\t</div>
 \t\t</div>
@@ -210,7 +333,8 @@ ${ind}</div>`;
 
 function pageTeam(data) {
   const s = data.site;
-  let h = head(s, 'Team');
+  const names = [data.professor.name].concat(data.members.map(m => m.name)).join(', ');
+  let h = head(s, 'Team', { desc: `Members of the ${stripTags(s.title)} at ${stripTags(s.titleSuffix)}: ${names}.`, path: 'team.html' });
   h += `
 \t<div class="section">
 \t\t<h2>Professor</h2>
@@ -248,7 +372,7 @@ ${g.items.map(m => personCard(m, true)).join('\n')}
 
 function pageResearch(data) {
   const s = data.site;
-  let h = head(s, 'Research');
+  let h = head(s, 'Research', { desc: `Research areas of the ${stripTags(s.title)}: ${data.research.map(r => stripTags(r.title)).join(', ')}.`, path: 'research.html' });
   h += `
 \t<div class="section">
 \t\t<h2>Research Areas</h2>
@@ -260,7 +384,7 @@ ${data.research.map(r => `\n\t\t<h3>${r.title}</h3>\n\t\t<p>${r.text}</p>`).join
 
 function pageProjects(data) {
   const s = data.site;
-  let h = head(s, 'Projects');
+  let h = head(s, 'Projects', { desc: `Funded research projects of the ${stripTags(s.title)}, with sponsors including ${[...new Set(data.projects.map(p => stripTags(p.sponsor)))].slice(0, 4).join(', ')}.`, path: 'projects.html' });
   h += `
 \t<div class="section">
 \t\t<h2>Projects</h2>
@@ -277,25 +401,31 @@ function pagePublications(data) {
   const pubs = data.publications.filter(p => p.type !== 'thesis');
   const theses = data.publications.filter(p => p.type === 'thesis');
   const years = [...new Set(pubs.map(p => p.year))].sort((a, b) => b - a);
-  let h = head(s, 'Publications');
+  const cites = data.citations;
+  const total = data.publications.reduce((n, p) => n + ((citeCount(p, cites) || {}).count || 0), 0);
+  let h = head(s, 'Publications', {
+    desc: `Publications of the ${stripTags(s.title)}, published in ${[...new Set(pubs.map(p => stripTags(p.venue)))].slice(0, 4).join(', ')}.`,
+    path: 'publications.html',
+  });
   h += `
 \t<div class="section">
 \t\t<h2>Publications</h2>
 \t\t${LEGEND}
+\t\t<p class="pub-tools"><span class="jump">${years.map(y => `<a href="#y${y}">${y}</a>`).join(' ')}${theses.length ? ' <a href="#thesis">Thesis</a>' : ''}</span><span class="pub-stats">${total ? `${total} citations &middot; ` : ''}<a href="felab.bib">Download all as BibTeX</a></span></p>
 `;
   for (const y of years) {
     h += `
-\t\t<h3 class="year-heading">${y}</h3>
+\t\t<h3 class="year-heading" id="y${y}">${y}</h3>
 \t\t<ul class="pub-list">
-${pubs.filter(p => p.year === y).map(p => '\t\t\t' + pubLi(p, data)).join('\n')}
+${pubs.filter(p => p.year === y).map(p => '\t\t\t' + pubLi(p, data, cites)).join('\n')}
 \t\t</ul>
 `;
   }
   if (theses.length) {
     h += `
-\t\t<h3 class="year-heading">Thesis</h3>
+\t\t<h3 class="year-heading" id="thesis">Thesis</h3>
 \t\t<ul class="pub-list">
-${theses.map(p => '\t\t\t' + pubLi(p, data)).join('\n')}
+${theses.map(p => '\t\t\t' + pubLi(p, data, cites)).join('\n')}
 \t\t</ul>
 `;
   }
@@ -316,7 +446,7 @@ function semesterRows(courses) {
 
 function pageCourses(data) {
   const s = data.site;
-  let h = head(s, 'Courses');
+  let h = head(s, 'Courses', { desc: data.coursesIntro || '', path: 'courses.html' });
   h += `
 \t<div class="section">
 \t\t<h2>Courses</h2>
@@ -332,7 +462,7 @@ ${semesterRows(data.courses)}
 
 function pageNews(data) {
   const s = data.site;
-  let h = head(s, 'News');
+  let h = head(s, 'News', { desc: `News from the ${stripTags(s.title)}. ${data.news.slice(0, 2).map(n => stripTags(n.short || n.text)).join(' ')}`, path: 'news.html' });
   h += `
 \t<div class="section">
 \t\t<h2>News</h2>
@@ -341,7 +471,7 @@ function pageNews(data) {
   let last = null;
   for (const n of data.news) {
     if (n.date !== last) { h += `\t\t\t<dt>${monthLong(n.date)}</dt>\n`; last = n.date; }
-    h += `\t\t\t<dd>${n.text}</dd>\n`;
+    h += `\t\t\t<dd>${markMembers(n.text, data)}</dd>\n`;
   }
   h += `\t\t</dl>
 \t</div>
@@ -399,7 +529,7 @@ function pageBlog(data) {
   const cats = data.blogCategories || {};
   const posts = (data.blog || []).slice().sort((a, b) => (b.date || '').localeCompare(a.date || ''));
   const intro = (s.blog && s.blog.intro) ? `\t\t<p class="blog-intro">${s.blog.intro}</p>\n` : '';
-  let h = head(s, 'Blog');
+  let h = head(s, 'Blog', { desc: (s.blog && s.blog.intro) || '', path: 'blog.html' });
   h += `
 \t<div class="section blog">
 \t\t<h2>${esc((s.blog && s.blog.label) || 'Blog')}</h2>
@@ -421,7 +551,8 @@ function pagePost(data, p) {
   const chip = catChip(cats, p.type);
   if (chip) meta.push(chip);
   if (p.location) meta.push(esc(p.location));
-  let h = head(s, 'Blog', '../', stripTags(p.title));
+  const photos0 = (p.photos || []).filter(x => x && x.url);
+  let h = head(s, 'Blog', { base: '../', docTitle: stripTags(p.title), desc: postSummary(p), path: `blog/${postId(p)}.html`, image: photos0.length ? photos0[0].url : null, type: 'article' });
   h += `
 \t<div class="section blog">
 \t\t<p class="crumb"><a href="blog.html">&larr; ${esc((s.blog && s.blog.label) || 'Blog')}</a></p>
@@ -429,7 +560,7 @@ function pagePost(data, p) {
 \t\t\t<p class="post-meta">${meta.join(' &middot; ')}</p>
 \t\t\t<h2 class="post-title">${p.title}</h2>
 ${p.titleKr ? `\t\t\t<p class="post-kr">${p.titleKr}</p>\n` : ''}${p.text ? `\t\t\t<div class="post-body">${p.text}</div>\n` : ''}`;
-  const photos = (p.photos || []).filter(x => x && x.url);
+  const photos = photos0;
   if (photos.length) {
     h += `\t\t\t<div class="gallery n${Math.min(photos.length, 3)}">\n`;
     for (const ph of photos) {
@@ -449,9 +580,61 @@ ${p.titleKr ? `\t\t\t<p class="post-kr">${p.titleKr}</p>\n` : ''}${p.text ? `\t\
   return h + foot(s);
 }
 
+// Feeds and crawler files ---------------------------------------------------
+
+function rfc822(date) {
+  const [y, m, d] = String(date).split('-').map(Number);
+  return new Date(Date.UTC(y, (m || 1) - 1, d || 1, 9)).toUTCString();
+}
+
+function feedXml(data, postFiles) {
+  const s = data.site;
+  const posts = (data.blog || []).slice().sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  const items = posts.map(p => `\t<item>
+\t\t<title>${esc(stripTags(p.title))}</title>
+\t\t<link>${esc(abs(s, 'blog/' + postId(p) + '.html'))}</link>
+\t\t<guid isPermaLink="true">${esc(abs(s, 'blog/' + postId(p) + '.html'))}</guid>
+\t\t<pubDate>${rfc822(p.date)}</pubDate>
+\t\t<description>${esc(postSummary(p))}</description>
+\t</item>`).join('\n');
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+\t<title>${esc(stripTags(s.title))} — ${esc((s.blog && s.blog.label) || 'Blog')}</title>
+\t<link>${esc(abs(s, 'blog.html'))}</link>
+\t<atom:link href="${esc(abs(s, 'feed.xml'))}" rel="self" type="application/rss+xml"/>
+\t<description>${esc(stripTags((s.blog && s.blog.intro) || s.title))}</description>
+\t<language>ko</language>
+${items}
+</channel>
+</rss>
+`;
+}
+
+function sitemapXml(data, pageFiles) {
+  const s = data.site;
+  const postDate = {};
+  for (const p of (data.blog || [])) postDate['blog/' + postId(p) + '.html'] = p.date;
+  const urls = pageFiles.map(f => {
+    const lastmod = postDate[f] ? `\n\t\t<lastmod>${postDate[f]}</lastmod>` : '';
+    return `\t<url>\n\t\t<loc>${esc(abs(s, f))}</loc>${lastmod}\n\t</url>`;
+  }).join('\n');
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls}
+</urlset>
+`;
+}
+
+function robotsTxt(data) {
+  return `User-agent: *\nAllow: /\n\nSitemap: ${abs(data.site, 'sitemap.xml')}\n`;
+}
+
 function build() {
   try { CSS_VERSION = require('crypto').createHash('sha1').update(fs.readFileSync(path.join(ROOT, 'style.css'))).digest('hex').slice(0, 8); } catch (e) {}
   const data = JSON.parse(fs.readFileSync(DATA, 'utf8'));
+  // Citation counts are refreshed separately (fetch-citations.js) and are optional.
+  try { data.citations = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'citations.json'), 'utf8')).works; } catch (e) { data.citations = null; }
   const pages = {
     'index.html': pageIndex,
     'team.html': pageTeam,
@@ -477,7 +660,17 @@ function build() {
   for (const f of fs.readdirSync(dir)) {
     if (f.endsWith('.html') && !keep.has(f)) fs.unlinkSync(path.join(dir, f));
   }
-  return Object.keys(pages).concat([...keep].map(f => 'blog/' + f));
+  const html = Object.keys(pages).concat([...keep].map(f => 'blog/' + f));
+  const extra = [];
+  fs.writeFileSync(path.join(ROOT, 'felab.bib'), bibFile(data), 'utf8');
+  extra.push('felab.bib');
+  if (data.site.url) {
+    fs.writeFileSync(path.join(ROOT, 'sitemap.xml'), sitemapXml(data, html), 'utf8');
+    fs.writeFileSync(path.join(ROOT, 'robots.txt'), robotsTxt(data), 'utf8');
+    fs.writeFileSync(path.join(ROOT, 'feed.xml'), feedXml(data), 'utf8');
+    extra.push('sitemap.xml', 'robots.txt', 'feed.xml');
+  }
+  return html.concat(extra);
 }
 
 module.exports = { build };

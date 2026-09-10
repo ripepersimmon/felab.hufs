@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://ripepersimmon.github.io/felab.hufs/sitemap.xml

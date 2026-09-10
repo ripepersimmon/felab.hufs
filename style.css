@@ -724,3 +724,77 @@ dl.projects dd {
 table.plain .rep {
 	color: #AAA;
 }
+
+/* Publications toolbar: year jump links and totals */
+.pub-tools {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px 20px;
+	justify-content: space-between;
+	align-items: baseline;
+	margin: 0 0 22px;
+	padding-bottom: 10px;
+	border-bottom: 1px solid #E5E5E5;
+	font-size: 0.9em;
+}
+
+.pub-tools .jump a {
+	margin-right: 10px;
+}
+
+.pub-tools .pub-stats {
+	color: #555;
+}
+
+/* Citation count and BibTeX expander on a publication */
+.pub-list .cited {
+	color: #555;
+	font-size: 0.88em;
+	white-space: nowrap;
+}
+
+.pub-list .cited a {
+	border-bottom-color: #D5DEE8;
+}
+
+details.bib {
+	display: inline;
+}
+
+details.bib > summary {
+	display: inline;
+	list-style: none;
+	cursor: pointer;
+	margin-left: 6px;
+	font-size: 0.82em;
+	letter-spacing: 0.5px;
+	text-transform: uppercase;
+	color: #0B3D6E;
+	border-bottom: 1px solid #B7C6D8;
+}
+
+details.bib > summary::-webkit-details-marker { display: none; }
+
+details.bib > summary:hover {
+	border-bottom-color: #0B3D6E;
+}
+
+details.bib[open] > summary {
+	color: #555;
+	border-bottom-color: #CCC;
+}
+
+details.bib > pre {
+	margin: 10px 0 4px;
+	padding: 12px 14px;
+	background: #F7F8FA;
+	border-left: 2px solid #B7C6D8;
+	font-family: Consolas, "Courier New", monospace;
+	font-size: 0.82em;
+	line-height: 1.55;
+	/* pre-wrap, not pre: an inline <details> mis-measures a scrolling child and
+	   clips the first character. Wrapping also keeps long author lists visible,
+	   and BibTeX ignores line breaks inside braces, so copying still works. */
+	white-space: pre-wrap;
+	word-break: break-word;
+}

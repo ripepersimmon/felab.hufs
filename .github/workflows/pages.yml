@@ -24,12 +24,18 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Refresh citation counts
+        # Best effort: on a network or API failure the committed
+        # data/citations.json is used instead, so the deploy still succeeds.
+        continue-on-error: true
+        run: node fetch-citations.js
       - name: Build pages from data/site.json
         run: node build.js
       - name: Collect public files
         run: |
           mkdir -p _site/images _site/blog
-          cp *.html style.css _site/
+          cp *.html style.css favicon.ico felab.bib _site/
+          cp sitemap.xml robots.txt feed.xml _site/
           cp -r images/. _site/images/
           cp -r blog/. _site/blog/
           touch _site/.nojekyll

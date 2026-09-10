@@ -1,0 +1,36 @@
+{
+  "updated": "2026-09-10",
+  "source": "OpenAlex",
+  "works": {
+    "2608.22852": {
+      "count": 0,
+      "url": "https://openalex.org/works/W7204157701",
+      "title": "Your AI, On a Dial: Controlling Investment Bias in LLMs with a Single Neuron"
+    },
+    "2607.15606": {
+      "count": 0,
+      "url": "https://openalex.org/works/W7169772333",
+      "title": "Seq2Synth: Benchmarking Temporal Fidelity in Synthetic Sequential Tabular Data"
+    },
+    "10.1016/j.engappai.2025.112200": {
+      "count": 0,
+      "url": "https://openalex.org/works/W4414230305",
+      "title": "Machine learning for disease-specific prediction of high-cost patients"
+    },
+    "10.1016/j.frl.2023.103698": {
+      "count": 2,
+      "url": "https://openalex.org/works/W4320487125",
+      "title": "Tracking customer risk aversion"
+    },
+    "10.1002/isaf.1523": {
+      "count": 5,
+      "url": "https://openalex.org/works/W4310235066",
+      "title": "Constructing a personalized recommender system for life insurance products with machine‐learning techniques"
+    },
+    "10.1007/978-3-030-50371-0_30": {
+      "count": 6,
+      "url": "https://openalex.org/works/W3035959363",
+      "title": "Stochastic Volatility and Early Warning Indicator"
+    }
+  }
+}
