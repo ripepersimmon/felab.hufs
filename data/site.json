@@ -47,6 +47,7 @@
       "Assistant Professor, Division of Finance &amp; AI, Hankuk University of Foreign Studies (since March 2025)",
       "Postdoctoral Researcher, Department of Industrial Engineering, UNIST",
       "Ph.D. in Industrial and Systems Engineering, KAIST",
+      "Sejong Science Fellowship, National Research Foundation of Korea (2024)",
       "Research: financial data science, machine learning for finance, AI mathematics"
     ],
     "email": "gho3283@hufs.ac.kr",
@@ -129,6 +130,12 @@
       "sponsor": "Korea Credit Information Services",
       "period": "2026",
       "description": "Analyzing synthetic data generation challenges in large-scale financial datasets."
+    },
+    {
+      "title": "Sejong Science Fellowship",
+      "sponsor": "National Research Foundation of Korea (NRF)",
+      "period": "2024",
+      "description": "Early-career researcher fellowship supporting independent research on AI and machine learning for finance."
     },
     {
       "title": "Customer Analysis and Stock Recommendation Model",
