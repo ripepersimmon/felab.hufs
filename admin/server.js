@@ -130,7 +130,9 @@ const BASE_HEADERS = {
   'Cache-Control': 'no-store',
   'X-Content-Type-Options': 'nosniff',
   'X-Frame-Options': 'DENY',
-  'Referrer-Policy': 'no-referrer',
+  // Not "no-referrer": under that policy browsers send "Origin: null" even on
+  // same-origin POSTs, which sameOrigin() below would refuse.
+  'Referrer-Policy': 'same-origin',
 };
 
 function send(res, code, body, type) {
