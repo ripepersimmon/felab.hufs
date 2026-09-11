@@ -326,13 +326,16 @@ function unproject(sx, sy) {
   return [x1 * cl - y1 * sl, x1 * sl + y1 * cl, z1];
 }
 
-// Pointers: one finger or the mouse turns the globe (or taps a route); two
-// fingers pinch to zoom and drag to turn. The canvas has touch-action: pan-y,
-// so a vertical one-finger swipe still scrolls the page, while a pinch is left
-// to us. A quick double tap zooms in on that spot.
+// Pointers: the mouse or one finger turns the globe (or taps a route); two
+// fingers pinch to zoom and drag to turn. The canvas has touch-action: none,
+// so the browser never starts scrolling under a pinch; instead a one-finger
+// swipe that begins mostly vertically scrolls the page from here. A quick
+// double tap zooms in on that spot.
 var pointers = {}, pinch = null, lastTap = null;
 function count() { var n = 0; for (var k in pointers) n++; return n; }
-function startDrag(m) { drag = { x: m.x, y: m.y, lon: view.lon, lat: view.lat, moved: false }; }
+function startDrag(m, e) {
+  drag = { x: m.x, y: m.y, lon: view.lon, lat: view.lat, moved: false, mode: e && e.pointerType !== 'mouse' ? null : 'turn', lastY: e ? e.clientY : 0 };
+}
 function startPinch() {
   var ids = Object.keys(pointers), a = pointers[ids[0]], b = pointers[ids[1]];
   pinch = { dist: Math.hypot(a.x - b.x, a.y - b.y) || 1, mid: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 } };
@@ -347,7 +350,7 @@ canvas.addEventListener('pointerdown', function (e) {
   pointers[e.pointerId] = m;
   canvas.setPointerCapture(e.pointerId);
   tween = null;
-  if (count() >= 2) startPinch(); else startDrag(m);
+  if (count() >= 2) startPinch(); else startDrag(m, e);
 });
 canvas.addEventListener('pointermove', function (e) {
   var m = pos(e);
@@ -362,6 +365,17 @@ canvas.addEventListener('pointermove', function (e) {
   if (drag) {
     var dx = m.x - drag.x, dy = m.y - drag.y;
     if (Math.abs(dx) + Math.abs(dy) > 4) drag.moved = true;
+    if (!drag.mode) {
+      // A finger: wait to see which way it goes. Mostly vertical means the
+      // reader wants the page, not the globe.
+      if (Math.abs(dx) + Math.abs(dy) < 6) return;
+      drag.mode = Math.abs(dy) > Math.abs(dx) * 1.2 ? 'scroll' : 'turn';
+    }
+    if (drag.mode === 'scroll') {
+      window.scrollBy(0, drag.lastY - e.clientY);
+      drag.lastY = e.clientY;
+      return;
+    }
     var k = 70 / R;
     view.lon = drag.lon - dx * k;
     view.lat = Math.max(-80, Math.min(80, drag.lat + dy * k));
@@ -380,7 +394,7 @@ function release(e) {
     pinch = null;
     drag = null;
     for (var k in pointers) startDrag(pointers[k]);   // carry on turning with the finger that stays
-    if (drag) drag.moved = true;
+    if (drag) { drag.moved = true; drag.mode = 'turn'; }
   }
 }
 canvas.addEventListener('pointerup', function (e) {

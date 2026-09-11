@@ -866,7 +866,9 @@ details.bib > pre {
 
 .globe-stage canvas {
 	display: block;
-	touch-action: pan-y;
+	/* No browser gestures on the globe: globe.js turns it, pinches it, and
+	   scrolls the page itself for a one-finger vertical swipe. */
+	touch-action: none;
 	user-select: none;
 	-webkit-user-select: none;
 }
