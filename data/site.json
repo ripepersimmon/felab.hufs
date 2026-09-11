@@ -526,8 +526,21 @@
       "title": "AAAI-26 견학",
       "titleKr": "The 40th AAAI Conference on Artificial Intelligence, Singapore",
       "summary": "2026년 1월 20일부터 27일까지 싱가포르 EXPO에서 열린 제40회 AAAI Conference on Artificial Intelligence(AAAI-26)를 견학했습니다.",
-      "text": "<p>2026년 1월 20일부터 27일까지 싱가포르 EXPO에서 열린 <b>제40회 AAAI Conference on Artificial Intelligence(AAAI-26)</b>를 견학했습니다. 발표 없이 참관 목적으로 다녀온 학회로, 메인 트랙(1월 22일부터 25일까지)의 발표와 포스터 세션을 둘러보았습니다.</p>",
-      "photos": [],
+      "text": "<p>2026년 1월 20일부터 27일까지 싱가포르 EXPO에서 열린 <b>제40회 AAAI Conference on Artificial Intelligence(AAAI-26)</b>를 견학했습니다. 발표 없이 참관 목적으로 다녀온 학회로, 메인 트랙(1월 22일부터 25일까지)의 발표와 포스터 세션을 둘러보았습니다. 송파바쿠테는 다시 먹어도 너무 맛있었습니다.</p>",
+      "photos": [
+        {
+          "url": "images/blog/aaai.jpg",
+          "caption": "오른쪽부터 권규리 학부연구생, 공형우 교수님, 박사홍 학부연구생"
+        },
+        {
+          "url": "images/blog/dflagain.jpg",
+          "caption": "ICAIF에 이어 AAAI에서도 DFL을 접했습니다"
+        },
+        {
+          "url": "images/blog/songfabakuteagain.jpg",
+          "caption": "싱가포르에서 송파바쿠테만 100그릇째.. (다소과장)"
+        }
+      ],
       "links": [
         {
           "label": "AAAI-26 website",
@@ -549,7 +562,7 @@
       "photos": [
         {
           "url": "images/blog/2511icaif/1_ICAIF.jpg",
-          "caption": "ICAIF 2025 단체 사진. 오른쪽부터 박사홍 학부연구생, 공형우 교수님, 우민주 학부연구생, 권규리 학부연구생"
+          "caption": "오른쪽부터 박사홍 학부연구생, 공형우 교수님, 우민주 학부연구생, 권규리 학부연구생"
         },
         {
           "url": "images/blog/2511icaif/2_bridgesession.jpg",
@@ -557,7 +570,7 @@
         },
         {
           "url": "images/blog/2511icaif/3_songfabakute.jpg",
-          "caption": "싱가포르에서 몇 번을 먹은 송파바쿠테."
+          "caption": "먹어도먹어도 질리지 않는 송파바쿠테."
         },
         {
           "url": "images/blog/2511icaif/4_nicesahong.jpg",
