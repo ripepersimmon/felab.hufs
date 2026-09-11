@@ -100,17 +100,6 @@
       ]
     },
     {
-      "name": "Minju Woo",
-      "korean": "우민주",
-      "group": "Undergraduate Researchers",
-      "role": "Undergraduate Researcher",
-      "period": "2025-07 ~ Present",
-      "photo": "",
-      "interests": "",
-      "email": "",
-      "links": []
-    },
-    {
       "name": "Gakyung Kwon",
       "korean": "권가경",
       "group": "Undergraduate Researchers",
@@ -499,7 +488,7 @@
         }
       ],
       "route": "Seoul > Gyeongju",
-      "tripLabel": "",
+      "tripLabel": "2026 춘계공동학술대회",
       "id": "2026-06-kiie"
     },
     {

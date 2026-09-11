@@ -82,10 +82,13 @@ var W = 0, H = 0, R = 0, CX = 0, CY = 0, DPR = 1;
 // The globe is drawn larger than the stage is tall, so it is cropped top and
 // bottom: a closer view of the routes, with the rim still showing at the sides.
 var ZOOM = 1.32;
+// Extra zoom from the mouse wheel, 1 at the opening size.
+var zoom = 1, ZOOM_MIN = 0.6, ZOOM_MAX = 4;
+function radius() { return Math.round((narrow() ? Math.min(W - 24, 420) : 440) * ZOOM * zoom / 2); }
 function layout() {
   W = stage.clientWidth;
   H = narrow() ? Math.round(W * 0.95) : 480;
-  R = Math.round((narrow() ? Math.min(W - 24, 420) : 440) * ZOOM / 2);
+  R = radius();
   CX = W / 2; CY = H / 2;
   DPR = Math.min(2, window.devicePixelRatio || 1);
   canvas.width = Math.round(W * DPR); canvas.height = Math.round(H * DPR);
@@ -171,7 +174,8 @@ function draw() {
 
   // Land dots; smaller towards the rim so the sphere reads as a sphere.
   ctx.beginPath();
-  var base = R / 165;
+  // Dots grow with the globe, but slower, so a close view stays airy.
+  var base = R / 165 * Math.pow(zoom, -0.3);
   for (i = 0; i < dots.length; i++) {
     r = rot(dots[i]);
     if (r[0] <= 0) continue;
@@ -326,6 +330,40 @@ canvas.addEventListener('pointerup', function (e) {
   select(h === selected ? null : h);
 });
 canvas.addEventListener('pointercancel', function () { drag = null; });
+
+// Wheel over the globe zooms in and out, towards the point under the cursor;
+// wheel outside the disc scrolls the page as usual.
+function unproject(sx, sy) {
+  var y = (sx - CX) / R, z = (CY - sy) / R, x2 = 1 - y * y - z * z;
+  if (x2 < 0) return null;
+  var x = Math.sqrt(x2);
+  // Undo the tilt, then the spin (inverse of rot).
+  var x1 = x * cp - z * sp, z1 = x * sp + z * cp, y1 = y;
+  return [x1 * cl - y1 * sl, x1 * sl + y1 * cl, z1];
+}
+canvas.addEventListener('wheel', function (e) {
+  var m = pos(e);
+  if (Math.hypot(m.x - CX, m.y - CY) > R) return;
+  e.preventDefault();
+  var dy = e.deltaMode === 1 ? e.deltaY * 30 : e.deltaMode === 2 ? e.deltaY * 300 : e.deltaY;
+  var next = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, zoom * Math.exp(-dy * 0.0016)));
+  if (next === zoom) return;
+  setRot();
+  var under = unproject(m.x, m.y);
+  var f = 1 - zoom / next;
+  zoom = next;
+  R = radius();
+  if (under && f > 0) {
+    // Slide the view centre a little towards the point under the cursor, so
+    // zooming in homes in on what the mouse is over.
+    var c = slerp(vec(view.lat, view.lon), under, f);
+    view.lon = Math.atan2(c[1], c[0]) / RAD;
+    view.lat = Math.max(-80, Math.min(80, Math.asin(Math.max(-1, Math.min(1, c[2]))) / RAD));
+  }
+  tween = null;
+  idleSince = performance.now();
+  needs = true;
+}, { passive: false });
 canvas.addEventListener('pointerleave', function () { if (hover) { hover = null; needs = true; } });
 document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && selected) select(null); });
 
@@ -399,7 +437,7 @@ function positionPhotos() {
   figs.forEach(function (f) {
     var s = SLOTS[f._slot % SLOTS.length];
     var w = f.offsetWidth || 180;
-    var side = W / 2 - R - 28;                  // free width beside the globe
+    var side = Math.max(W / 2 - R - 28, 210);   // free width beside the globe (over it when zoomed in)
     var nudge = (f._slot % 3 === 1) ? 14 : 0;   // middle slot sits closer to the globe
     var x = s[0] ? W - side + (side - w) / 2 - nudge : (side - w) / 2 + nudge;
     var y = H * s[1];
