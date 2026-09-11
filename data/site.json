@@ -64,8 +64,9 @@
       "korean": "박사홍",
       "group": "Undergraduate Researchers",
       "role": "Undergraduate Researcher",
+      "period": "2025-07 ~ Present",
       "photo": "images/sahongpark.png",
-      "interests": "Portfolio Optimization, AI in Finance, Large Language Models",
+      "interests": "Portfolio Optimization, AI in Finance, Decision-Focused Learning, Large Language Models",
       "email": "justin4396@hufs.ac.kr",
       "links": [
         {
@@ -76,25 +77,36 @@
           "type": "scholar",
           "url": "https://scholar.google.com/citations?authuser=1&user=T3E-gRYAAAAJ"
         }
-      ],
-      "period": "2025-07 ~ Present"
+      ]
     },
     {
       "name": "Hyunmo Koo",
       "korean": "구현모",
       "group": "Undergraduate Researchers",
       "role": "Undergraduate Researcher",
+      "period": "2025-07 ~ Present",
       "photo": "",
       "interests": "",
       "email": "",
-      "links": [],
-      "period": "2025-07 ~ Present"
+      "links": []
+    },
+    {
+      "name": "Minju Woo",
+      "korean": "우민주",
+      "group": "Undergraduate Researchers",
+      "role": "Undergraduate Researcher",
+      "period": "2025-07 ~ Present",
+      "photo": "",
+      "interests": "",
+      "email": "",
+      "links": []
     },
     {
       "name": "Gakyung Kwon",
       "korean": "권가경",
       "group": "Undergraduate Researchers",
       "role": "Undergraduate Researcher",
+      "period": "",
       "photo": "images/gakyungkwon.png",
       "interests": "",
       "email": "eileenk@hufs.ac.kr",
@@ -103,8 +115,23 @@
           "type": "linkedin",
           "url": "https://www.linkedin.com/in/gakyung-kwon/"
         }
-      ],
-      "period": ""
+      ]
+    },
+    {
+      "name": "Jongmin Lee",
+      "korean": "이종민",
+      "group": "Undergraduate Researchers",
+      "role": "Undergraduate Researcher",
+      "period": "2026-07 ~ Present",
+      "photo": "images/jongminlee.png",
+      "interests": "xAI, AI in Finance, ML for finance",
+      "email": "202202727@hufs.ac.kr",
+      "links": [
+        {
+          "type": "linkedin",
+          "url": "https://www.linkedin.com/in/%EC%A2%85%EB%AF%BC-%EC%9D%B4-226ba3337/"
+        }
+      ]
     }
   ],
   "research": [
@@ -352,8 +379,8 @@
     },
     {
       "date": "2026-06",
-      "text": "Undergraduate researcher Sahong Park gave an oral presentation, \"GerberShrink: Correlation-based Portfolio Optimization\", at the Financial AI special session of the 2026 Spring Joint Conference of KORMS, KIIE, and the Korea Society for Simulation, held at HICO in Gyeongju. [<a href=\"blog/2026-06-kiie.html\">blog</a>]",
-      "short": "Sahong Park presented at the Financial AI session of the 2026 Spring Joint Conference."
+      "short": "Sahong Park presented at the Financial AI session of the 2026 Spring Joint Conference.",
+      "text": "Undergraduate researcher Sahong Park gave an oral presentation, \"GerberShrink: Correlation-based Portfolio Optimization\", at the Financial AI special session of the 2026 Spring Joint Conference of KORMS, KIIE, and the Korea Society for Simulation, held at HICO in Gyeongju. [<a href=\"blog/2026-06-kiie.html\">blog</a>]"
     },
     {
       "date": "2025-12",
@@ -373,34 +400,34 @@
   ],
   "blogCategories": {
     "award": {
-      "name": "Award",
-      "icon": "🏆"
+      "icon": "🏆",
+      "name": "Award"
     },
     "conference": {
-      "name": "Conference",
-      "icon": "🎓"
+      "icon": "🎓",
+      "name": "Conference"
     },
     "seminar": {
-      "name": "Seminar",
-      "icon": "📚"
+      "icon": "📚",
+      "name": "Seminar"
     },
     "social": {
-      "name": "Social",
-      "icon": "🎉"
+      "icon": "🎉",
+      "name": "Social"
     },
     "milestone": {
-      "name": "Milestone",
-      "icon": "🎊"
+      "icon": "🎊",
+      "name": "Milestone"
     }
   },
   "blog": [
     {
-      "id": "2026-09-website",
       "date": "2026-09-10",
       "type": "milestone",
+      "location": "Yongin",
       "title": "Lab website goes live",
       "titleKr": "연구실 홈페이지 오픈",
-      "location": "Yongin",
+      "summary": "연구실 홈페이지를 열었습니다. 블로그 페이지에는 학회 참석, 내부 행사 등 연구실 소식을 사진과 함께 올릴 예정입니다.",
       "text": "<p>박사홍, 권가경 학생이 남는 토큰을 활용해 연구실 홈페이지를 제작했습니다. 요즘은 투박한 웹페이지가 오히려 멋지다는 박사홍 학생의 개인 취향이 반영되었습니다. 논문, 프로젝트, 강의 정보와 함께 이 블로그에는 학회 참석이나 연구실 행사 같은 소식을 사진과 함께 올릴 예정입니다. 레퍼런스가 된 연구실 홈페이지들은 비밀이라고 합니다.</p>",
       "photos": [
         {
@@ -408,15 +435,15 @@
           "caption": "홈페이지 첫 화면"
         }
       ],
-      "summary": "연구실 홈페이지를 열었습니다. 블로그 페이지에는 학회 참석, 내부 행사 등 연구실 소식을 사진과 함께 올릴 예정입니다."
+      "links": [],
+      "id": "2026-09-website"
     },
     {
-      "id": "2026-06-kiie",
       "date": "2026-06-04",
       "type": "conference",
+      "location": "경주 화백컨벤션센터 (HICO)",
       "title": "2026 춘계공동학술대회 참가",
       "titleKr": "2026 KIIE/KORMS Spring Joint Conference",
-      "location": "경주 화백컨벤션센터 (HICO)",
       "summary": "한국경영과학회, 대한산업공학회, 한국시뮬레이션학회가 공동 주최한 2026 춘계공동학술대회에 참가했습니다. 금융 인공지능 특별 세션에서 학부연구생 박사홍이 구두 발표를 했습니다.",
       "text": "<p>2026년 6월 4일부터 5일까지 경주 화백컨벤션센터(HICO)에서 열린 2026 춘계공동학술대회에 참가했습니다. 한국경영과학회, 대한산업공학회, 한국시뮬레이션학회가 공동 주최한 학술대회입니다.</p><p>금융 인공지능 특별 세션에서 학부연구생 박사홍이 <i>GerberShrink: Correlation-based Portfolio Optimization</i>을 구두 발표했습니다. 이 세션에는 KAIST, 한양대, 고려대, 성균관대, 한국외대, UNIST 여섯 개 연구실이 참여해 다양한 주제를 발표했고, 세션이 끝난 뒤에는 경주에서 연구실 간 교류 모임이 이어졌습니다.</p><p>학회 마지막 날 연구실 회식 장소는 보문단지 근처 한옥 한식집 <b>소솜당</b>(경북 경주시 천북남로 29-5)이었는데요, 참 맛있었으니 경주 방문 예정이신 분들은 강추드립니다. (어떠한 커미션도 없습니다.)</p><p>참고로 학술대회 첫날인 6월 4일은 마침 박사홍 학부연구생의 생일이기도 했습니다.</p>",
       "photos": [
@@ -443,22 +470,22 @@
       ],
       "links": [
         {
-          "label": "박사홍 학부연구생 발표 후기 (LinkedIn)",
-          "url": "https://www.linkedin.com/posts/sahong_2026-%EC%B6%98%EA%B3%84%EA%B3%B5%EB%8F%99%ED%95%99%EC%88%A0%EB%8C%80%ED%9A%8C-%EC%98%A4%EB%8A%98-%ED%95%9C%EA%B5%AD%EA%B2%BD%EC%98%81%EA%B3%BC%ED%95%99%ED%9A%8C-%EB%8C%80%ED%95%9C%EC%82%B0%EC%97%85%EA%B3%B5%ED%95%99%ED%9A%8C-activity-7468615110991757312-TFU2"
+          "label": "박사홍",
+          "url": "학부연구생 발표 후기 (LinkedIn) https://www.linkedin.com/posts/sahong_2026-%EC%B6%98%EA%B3%84%EA%B3%B5%EB%8F%99%ED%95%99%EC%88%A0%EB%8C%80%ED%9A%8C-%EC%98%A4%EB%8A%98-%ED%95%9C%EA%B5%AD%EA%B2%BD%EC%98%81%EA%B3%BC%ED%95%99%ED%9A%8C-%EB%8C%80%ED%95%9C%EC%82%B0%EC%97%85%EA%B3%B5%ED%95%99%ED%9A%8C-activity-7468615110991757312-TFU2"
         },
         {
-          "label": "금융 인공지능 특별 세션 후기, UNIST 이용재 교수님 (LinkedIn)",
-          "url": "https://www.linkedin.com/posts/yongjae-lee-548982107_2026%EB%85%84-%EC%B6%98%EA%B3%84-%EA%B2%BD%EC%98%81%EA%B3%BC%ED%95%99%ED%9A%8C%EC%82%B0%EC%97%85%EA%B3%B5%ED%95%99%ED%9A%8C-%EA%B3%B5%EB%8F%99-%ED%95%99%EC%88%A0%EB%8C%80%ED%9A%8C%EC%97%90%EC%84%9C-%EA%B8%88%EC%9C%B5-%EC%9D%B8%EA%B3%B5%EC%A7%80%EB%8A%A5-%ED%8A%B9%EB%B3%84-activity-7468572383843414016-dO8_"
+          "label": "금융",
+          "url": "인공지능 특별 세션 후기, UNIST 이용재 교수님 (LinkedIn) https://www.linkedin.com/posts/yongjae-lee-548982107_2026%EB%85%84-%EC%B6%98%EA%B3%84-%EA%B2%BD%EC%98%81%EA%B3%BC%ED%95%99%ED%9A%8C%EC%82%B0%EC%97%85%EA%B3%B5%ED%95%99%ED%9A%8C-%EA%B3%B5%EB%8F%99-%ED%95%99%EC%88%A0%EB%8C%80%ED%9A%8C%EC%97%90%EC%84%9C-%EA%B8%88%EC%9C%B5-%EC%9D%B8%EA%B3%B5%EC%A7%80%EB%8A%A5-%ED%8A%B9%EB%B3%84-activity-7468572383843414016-dO8_"
         }
-      ]
+      ],
+      "id": "2026-06-kiie"
     },
     {
-      "id": "2025-11-award",
       "date": "2025-11-06",
       "type": "award",
+      "location": "한국외대 백년관 국제세미나실",
       "title": "구현모 학부연구생, 학과특성화 프로그램 학생연구 최우수상",
       "titleKr": "Top Prize at the HUFS Student Research Program",
-      "location": "한국외대 백년관 국제세미나실",
       "summary": "구현모 학부연구생이 제1회 학과특성화 프로그램 학생연구 결과보고회에서 인문사회계열(비언어) 최우수상을 받았습니다. 분자 용해도 예측을 위한 Meta-XGBoost 모델을 발표했습니다.",
       "text": "<p>2025년 11월 6일 백년관 국제세미나실에서 열린 <b>제1회 학과특성화 프로그램 학생연구 결과보고회</b>에서 <u>구현모</u> 학부연구생(Finance &amp; AI 융합학부 이중전공)이 인문사회계열(비언어) 부문 <b>최우수상</b>을 수상했습니다. 한국외국어대학교 교육혁신원이 주관한 행사입니다.</p><p>발표 주제는 <i>Meta-XGBoost: A Robust Ensemble for Molecular Solubility Prediction</i>으로, 분자의 용해도를 예측하는 앙상블 모델입니다. 전체 데이터셋을 용해도 기준으로 Low, Mid, High 세 구간으로 나눠 구간마다 별도의 XGBoost 모델을 학습시키고, 각 모델의 예측값을 PyTorch로 구현한 FNN 메타 모델이 받아 softmax 기반 가중치를 만드는 구조입니다. 구간별 특이성을 반영하면서도 기존 최신 연구들을 웃도는 정확도를 냈습니다.</p><p>공형우 교수님의 지도 아래 8개월에 걸쳐 진행된 연구입니다. 1학기에 기초 분석과 모델 설계를 마친 뒤 여름방학과 2학기 동안 추가 실험과 오류 분석, 후속 검증을 반복했습니다. 심사에서는 연구 결과 자체뿐 아니라 스스로 실험을 설계하고 해결책을 찾아간 과정이 함께 높은 평가를 받았습니다.</p>",
       "photos": [
@@ -473,10 +500,11 @@
       ],
       "links": [
         {
-          "label": "학부 공지: 학과 특성화 프로그램 학생연구 최우수상 수상",
-          "url": "https://aifinance.hufs.ac.kr/aifinance/m05_s02.do?enc=Zm5jdDF8QEB8JTJGYmJzJTJGYWlmaW5hbmNlJTJGMjEyNiUyRjI0MzM5MCUyRmFydGNsVmlldy5kbyUzRnBhZ2UlM0QyJTI2c3JjaENvbHVtbiUzRCUyNnNyY2hXcmQlM0QlMjZiYnNDbFNlcSUzRCUyNmJic09wZW5XcmRTZXElM0QlMjZyZ3NCZ25kZVN0ciUzRCUyNnJnc0VuZGRlU3RyJTNEJTI2aXNWaWV3TWluZSUzRGZhbHNlJTI2cGFzc3dvcmQlM0QlMjY%3D"
+          "label": "학부",
+          "url": "공지: 학과 특성화 프로그램 학생연구 최우수상 수상 https://aifinance.hufs.ac.kr/aifinance/m05_s02.do?enc=Zm5jdDF8QEB8JTJGYmJzJTJGYWlmaW5hbmNlJTJGMjEyNiUyRjI0MzM5MCUyRmFydGNsVmlldy5kbyUzRnBhZ2UlM0QyJTI2c3JjaENvbHVtbiUzRCUyNnNyY2hXcmQlM0QlMjZiYnNDbFNlcSUzRCUyNmJic09wZW5XcmRTZXElM0QlMjZyZ3NCZ25kZVN0ciUzRCUyNnJnc0VuZGRlU3RyJTNEJTI2aXNWaWV3TWluZSUzRGZhbHNlJTI2cGFzc3dvcmQlM0QlMjY%3D"
         }
-      ]
+      ],
+      "id": "2025-11-award"
     }
   ]
 }
