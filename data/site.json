@@ -85,10 +85,15 @@
       "group": "Undergraduate Researchers",
       "role": "Undergraduate Researcher",
       "period": "2025-07 ~ Present",
-      "photo": "",
-      "interests": "",
-      "email": "",
-      "links": []
+      "photo": "images/hyunmogoo.png",
+      "interests": "Fraud Detection, AI-driven Chemistry",
+      "email": "goo6964goo7131@gmail.com",
+      "links": [
+        {
+          "type": "github",
+          "url": "https://github.com/Tuesdayand"
+        }
+      ]
     },
     {
       "name": "Minju Woo",
