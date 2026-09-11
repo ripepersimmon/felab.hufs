@@ -297,15 +297,68 @@ function hit(mx, my) {
 var drag = null, idleSince = 0, tween = null;
 function pos(e) { var b = canvas.getBoundingClientRect(); return { x: e.clientX - b.left, y: e.clientY - b.top }; }
 
+// Zoom by a factor, keeping the point at (sx, sy) roughly where it is: the view
+// centre slides a little towards it, so zooming in homes in on what the mouse
+// or the fingers are over. Used by the wheel, pinch, double-tap and buttons.
+function zoomAt(sx, sy, factor) {
+  var next = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, zoom * factor));
+  if (next === zoom) return;
+  setRot();
+  var under = (sx == null) ? null : unproject(sx, sy);
+  var f = 1 - zoom / next;
+  zoom = next;
+  R = radius();
+  if (under && f > 0) {
+    var c = slerp(vec(view.lat, view.lon), under, f);
+    view.lon = Math.atan2(c[1], c[0]) / RAD;
+    view.lat = Math.max(-80, Math.min(80, Math.asin(Math.max(-1, Math.min(1, c[2]))) / RAD));
+  }
+  tween = null;
+  idleSince = performance.now();
+  needs = true;
+}
+function unproject(sx, sy) {
+  var y = (sx - CX) / R, z = (CY - sy) / R, x2 = 1 - y * y - z * z;
+  if (x2 < 0) return null;
+  var x = Math.sqrt(x2);
+  // Undo the tilt, then the spin (inverse of rot).
+  var x1 = x * cp - z * sp, z1 = x * sp + z * cp, y1 = y;
+  return [x1 * cl - y1 * sl, x1 * sl + y1 * cl, z1];
+}
+
+// Pointers: one finger or the mouse turns the globe (or taps a route); two
+// fingers pinch to zoom and drag to turn. The canvas has touch-action: pan-y,
+// so a vertical one-finger swipe still scrolls the page, while a pinch is left
+// to us. A quick double tap zooms in on that spot.
+var pointers = {}, pinch = null, lastTap = null;
+function count() { var n = 0; for (var k in pointers) n++; return n; }
+function startDrag(m) { drag = { x: m.x, y: m.y, lon: view.lon, lat: view.lat, moved: false }; }
+function startPinch() {
+  var ids = Object.keys(pointers), a = pointers[ids[0]], b = pointers[ids[1]];
+  pinch = { dist: Math.hypot(a.x - b.x, a.y - b.y) || 1, mid: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 } };
+  drag = null;
+  startDrag(pinch.mid);
+  drag.moved = true;
+}
+
 canvas.addEventListener('pointerdown', function (e) {
   if (e.button !== 0 && e.pointerType === 'mouse') return;
   var m = pos(e);
-  drag = { x: m.x, y: m.y, lon: view.lon, lat: view.lat, moved: false };
-  tween = null;
+  pointers[e.pointerId] = m;
   canvas.setPointerCapture(e.pointerId);
+  tween = null;
+  if (count() >= 2) startPinch(); else startDrag(m);
 });
 canvas.addEventListener('pointermove', function (e) {
   var m = pos(e);
+  if (pointers[e.pointerId]) pointers[e.pointerId] = m;
+  if (pinch && count() >= 2) {
+    var ids = Object.keys(pointers), a = pointers[ids[0]], b = pointers[ids[1]];
+    var dist = Math.hypot(a.x - b.x, a.y - b.y) || 1;
+    var mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+    if (Math.abs(dist / pinch.dist - 1) > 0.01) { zoomAt(mid.x, mid.y, dist / pinch.dist); pinch.dist = dist; }
+    m = mid;
+  }
   if (drag) {
     var dx = m.x - drag.x, dy = m.y - drag.y;
     if (Math.abs(dx) + Math.abs(dy) > 4) drag.moved = true;
@@ -321,49 +374,49 @@ canvas.addEventListener('pointermove', function (e) {
   canvas.style.cursor = h ? 'pointer' : 'grab';
   idleSince = performance.now();
 });
+function release(e) {
+  delete pointers[e.pointerId];
+  if (pinch && count() < 2) {
+    pinch = null;
+    drag = null;
+    for (var k in pointers) startDrag(pointers[k]);   // carry on turning with the finger that stays
+    if (drag) drag.moved = true;
+  }
+}
 canvas.addEventListener('pointerup', function (e) {
-  if (!drag) return;
+  release(e);
+  if (!drag || count()) return;
   var moved = drag.moved; drag = null;
   idleSince = performance.now();
   if (moved) return;
-  var m = pos(e), h = hit(m.x, m.y);
+  var m = pos(e), now = performance.now();
+  if (lastTap && now - lastTap.t < 350 && Math.hypot(m.x - lastTap.x, m.y - lastTap.y) < 24) {
+    lastTap = null;
+    zoomAt(m.x, m.y, zoom >= ZOOM_MAX - 0.01 ? ZOOM_MIN / zoom : 1.6);
+    return;
+  }
+  lastTap = { x: m.x, y: m.y, t: now };
+  var h = hit(m.x, m.y);
   select(h === selected ? null : h);
 });
-canvas.addEventListener('pointercancel', function () { drag = null; });
+canvas.addEventListener('pointercancel', function (e) { release(e); if (!count()) { drag = null; pinch = null; } });
+// A pointer whose capture is lost without an up (e.g. the tab switching) must
+// not linger, or the next pinch would count three fingers.
+canvas.addEventListener('lostpointercapture', function (e) { if (pointers[e.pointerId]) { release(e); if (!count()) { drag = null; pinch = null; } } });
 
-// Wheel over the globe zooms in and out, towards the point under the cursor;
-// wheel outside the disc scrolls the page as usual.
-function unproject(sx, sy) {
-  var y = (sx - CX) / R, z = (CY - sy) / R, x2 = 1 - y * y - z * z;
-  if (x2 < 0) return null;
-  var x = Math.sqrt(x2);
-  // Undo the tilt, then the spin (inverse of rot).
-  var x1 = x * cp - z * sp, z1 = x * sp + z * cp, y1 = y;
-  return [x1 * cl - y1 * sl, x1 * sl + y1 * cl, z1];
-}
+// Wheel over the globe zooms; outside the disc it scrolls the page as usual.
 canvas.addEventListener('wheel', function (e) {
   var m = pos(e);
   if (Math.hypot(m.x - CX, m.y - CY) > R) return;
   e.preventDefault();
   var dy = e.deltaMode === 1 ? e.deltaY * 30 : e.deltaMode === 2 ? e.deltaY * 300 : e.deltaY;
-  var next = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, zoom * Math.exp(-dy * 0.0016)));
-  if (next === zoom) return;
-  setRot();
-  var under = unproject(m.x, m.y);
-  var f = 1 - zoom / next;
-  zoom = next;
-  R = radius();
-  if (under && f > 0) {
-    // Slide the view centre a little towards the point under the cursor, so
-    // zooming in homes in on what the mouse is over.
-    var c = slerp(vec(view.lat, view.lon), under, f);
-    view.lon = Math.atan2(c[1], c[0]) / RAD;
-    view.lat = Math.max(-80, Math.min(80, Math.asin(Math.max(-1, Math.min(1, c[2]))) / RAD));
-  }
-  tween = null;
-  idleSince = performance.now();
-  needs = true;
+  zoomAt(m.x, m.y, Math.exp(-dy * 0.0016));
 }, { passive: false });
+
+// The + / − buttons, for touch screens and anyone without a wheel.
+Array.prototype.forEach.call(wrap.querySelectorAll('.globe-zoom button'), function (b) {
+  b.addEventListener('click', function () { zoomAt(null, null, b.getAttribute('data-zoom') === 'in' ? 1.5 : 1 / 1.5); });
+});
 canvas.addEventListener('pointerleave', function () { if (hover) { hover = null; needs = true; } });
 document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && selected) select(null); });
 

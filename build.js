@@ -600,11 +600,12 @@ function globeSection(data, posts) {
 \t\t\t<div class="globe-stage">
 \t\t\t\t<canvas role="img" aria-label="Globe showing the lab's conference trips"></canvas>
 \t\t\t\t<div class="globe-photos"></div>
+\t\t\t\t<div class="globe-zoom"><button type="button" data-zoom="in" aria-label="Zoom in">+</button><button type="button" data-zoom="out" aria-label="Zoom out">&minus;</button></div>
 \t\t\t</div>
 \t\t\t<div class="globe-trips">
 ${buttons}
 \t\t\t</div>
-\t\t\t<p class="globe-hint">${g.hint || 'Drag to turn the globe, scroll to zoom. Click a route, or a trip above, to see photos from it.'}</p>
+\t\t\t<p class="globe-hint">${g.hint || 'Drag to turn the globe; scroll, pinch or double-tap to zoom. Click a route, or a trip above, to see photos from it.'}</p>
 \t\t\t<noscript><ul class="globe-list">
 ${list}
 \t\t\t</ul></noscript>
