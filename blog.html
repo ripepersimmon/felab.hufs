@@ -17,7 +17,7 @@
 <link rel="icon" type="image/png" href="images/favicon-32.png" sizes="32x32">
 <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
 <link rel="alternate" type="application/rss+xml" title="Financial Engineering Lab. — Blog" href="feed.xml">
-<link rel="stylesheet" href="style.css?v=5132ed9d">
+<link rel="stylesheet" href="style.css?v=dcdab429">
 <style>
 #yf-2026:checked ~ .cards .card:not(.y2026) { display: none; }
 #yf-2026:checked ~ .filters label[for="yf-2026"] { background: #0B3D6E; color: #fff; border-color: #0B3D6E; }
@@ -32,7 +32,6 @@
 #cf-milestone:checked ~ .filters label[for="cf-milestone"] { background: #0B3D6E; color: #fff; border-color: #0B3D6E; }
 #cf-all:checked ~ .filters label[for="cf-all"] { background: #0B3D6E; color: #fff; border-color: #0B3D6E; }
 #yf-2026:checked ~ #cf-award:checked ~ .empty { display: block; }
-#yf-2025:checked ~ #cf-conference:checked ~ .empty { display: block; }
 #yf-2025:checked ~ #cf-milestone:checked ~ .empty { display: block; }
 </style>
 </head>
@@ -58,6 +57,23 @@
 	<div class="section blog">
 		<h2>Blog</h2>
 		<p class="blog-intro">Photos and short notes from lab life: conferences, seminars, gatherings, and small milestones.</p>
+		<div class="globe" id="globe">
+			<h3>Conference trips</h3>
+			<div class="globe-stage">
+				<canvas role="img" aria-label="Globe showing the lab's conference trips"></canvas>
+				<div class="globe-photos"></div>
+			</div>
+			<div class="globe-trips">
+				<button type="button" data-trip="0"><span class="n">1</span>AAAI-26<span class="when">Singapore, January 2026</span></button>
+				<button type="button" data-trip="1"><span class="n">2</span>ICAIF 2025<span class="when">Singapore, November 2025</span></button>
+			</div>
+			<p class="globe-hint">Drag to turn the globe. Click a route, or a trip above, to see photos from it.</p>
+			<noscript><ul class="globe-list">
+				<li><a href="blog/2026-01-aaai.html">AAAI-26</a> — Seoul → Singapore, January 2026</li>
+				<li><a href="blog/2025-11-icaif.html">ICAIF 2025</a> — Seoul → Singapore, November 2025</li>
+			</ul></noscript>
+			<script type="application/json" id="globe-data">{"places":{"Seoul":[37.57,126.98],"Singapore":[1.35,103.82]},"trips":[{"label":"AAAI-26","date":"2026-01-20","when":"January 2026","href":"blog/2026-01-aaai.html","path":["Seoul","Singapore"],"photos":[]},{"label":"ICAIF 2025","date":"2025-11-15","when":"November 2025","href":"blog/2025-11-icaif.html","path":["Seoul","Singapore"],"photos":[]}],"noPhotos":"No photos yet. Read the post →"}</script>
+		</div>
 		<input class="bfilter" type="radio" name="year" id="yf-2026">
 		<input class="bfilter" type="radio" name="year" id="yf-2025">
 		<input class="bfilter" type="radio" name="year" id="yf-all" checked>
@@ -90,6 +106,26 @@
 					<p class="card-foot"><span>경주 화백컨벤션센터 (HICO)</span><span class="more">Details &rarr;</span></p>
 				</div>
 			</a>
+			<a class="card y2026 c-conference" href="blog/2026-01-aaai.html">
+				<div class="thumb"><div class="thumb-blank">🎓</div></div>
+				<div class="card-body">
+					<p class="card-meta"><span class="tag">🎓 Conference</span><time>January 20, 2026</time></p>
+					<h4>AAAI-26 견학</h4>
+					<p class="post-kr">The 40th AAAI Conference on Artificial Intelligence, Singapore</p>
+					<p class="card-summary">2026년 1월 20일부터 27일까지 싱가포르 EXPO에서 열린 제40회 AAAI Conference on Artificial Intelligence(AAAI-26)를 견학했습니다.</p>
+					<p class="card-foot"><span>Singapore EXPO</span><span class="more">Details &rarr;</span></p>
+				</div>
+			</a>
+			<a class="card y2025 c-conference" href="blog/2025-11-icaif.html">
+				<div class="thumb"><div class="thumb-blank">🎓</div></div>
+				<div class="card-body">
+					<p class="card-meta"><span class="tag">🎓 Conference</span><time>November 15, 2025</time></p>
+					<h4>ICAIF 2025 견학</h4>
+					<p class="post-kr">The 6th ACM International Conference on AI in Finance, Singapore</p>
+					<p class="card-summary">2025년 11월 15일부터 18일까지 싱가포르에서 열린 제6회 ACM International Conference on AI in Finance(ICAIF '25)를 견학했습니다.</p>
+					<p class="card-foot"><span>Sheraton Towers Singapore</span><span class="more">Details &rarr;</span></p>
+				</div>
+			</a>
 			<a class="card y2025 c-award" href="blog/2025-11-award.html">
 				<div class="thumb"><img src="images/blog/251106/nicekoo.jpg" alt="구현모 학부연구생, 학과특성화 프로그램 학생연구 최우수상" loading="lazy"></div>
 				<div class="card-body">
@@ -116,5 +152,6 @@
 		</div>
 	</div>
 </div>
+<script src="globe.js?v=687eadbc"></script>
 </body>
 </html>

@@ -149,10 +149,13 @@ const SECTIONS = [
     { k: 'text', l: 'Body (HTML allowed, use <p> for paragraphs)', t: 'html', tall: true },
     { k: 'photos', l: 'Photos (one per line: path | caption). The first photo is the card thumbnail. Use the file picker to upload several at once.', t: 'photos' },
     { k: 'links', l: 'References (one per line: label url)', t: 'pairs' },
+    { k: 'route', l: 'Route on the globe map (places joined by ">", e.g. "Seoul > Singapore"; every name must be in the Places list below; leave empty to keep the post off the globe)', g: 'grid2' },
+    { k: 'tripLabel', l: 'Short name on the globe (optional, e.g. "ICAIF 2025"; the title is used if empty)', g: 'grid2' },
     { k: 'id', l: 'Anchor id (optional, auto from date and title)' },
   ], extra: [
     { path: 'blogCategories', k: '', l: 'Categories (one per line: key emoji name — e.g. "conference 🎓 Conference")', t: 'cats' },
-  ], help: 'Posts appear as cards, newest first, grouped by year. Each card opens its own page under blog/. Photos are cropped to 4:3 and open full-size when clicked.' },
+    { path: 'places', k: '', l: 'Places for the globe map (one per line: name latitude longitude — e.g. "Singapore 1.35 103.82")', t: 'places' },
+  ], help: 'Posts appear as cards, newest first, grouped by year. Each card opens its own page under blog/. Photos are cropped to 4:3 and open full-size when clicked. A post with a route is also drawn on the globe at the top of the Blog page; clicking that route shows the post\'s photos.' },
   { id: 'contact', label: 'Contact & Footer', kind: 'object', path: 'site', fields: [
     { k: 'contact.name', l: 'Contact name (Home sidebar)' },
     { k: 'contact.email', l: 'Contact email' },
@@ -194,6 +197,7 @@ function fieldInput(f, value, ctx) {
   else if (t === 'pairs') { input = el('textarea', {}, (value || []).map(x => (x.label || 'paper') + ' ' + (x.url || '')).join('\n')); }
   else if (t === 'select') { const opts = typeof f.opts === 'function' ? f.opts() : f.opts; input = el('select', {}, ...opts.map(o => { const op = el('option', { value: o }, o); if (o === value) op.selected = true; return op; })); }
   else if (t === 'cats') { input = el('textarea', {}, Object.entries(value || {}).map(([k, c]) => `${k} ${c.icon || ''} ${c.name || ''}`.trim()).join('\n')); }
+  else if (t === 'places') { input = el('textarea', {}, Object.entries(value || {}).map(([k, c]) => `${k} ${(c || []).join(' ')}`.trim()).join('\n')); }
   else if (t === 'photos') {
     input = el('textarea', { class: 'tall' }, (value || []).map(x => x.url + (x.caption ? ' | ' + x.caption : '')).join('\n'));
     const file = el('input', { type: 'file', accept: 'image/*', multiple: true });
@@ -244,8 +248,9 @@ function fieldValue(lab) {
   if (t === 'number') return v === '' ? '' : Number(v);
   if (t === 'lines') return v.split('\n').map(s => s.trim()).filter(Boolean);
   if (t === 'links') return v.split('\n').map(s => s.trim()).filter(Boolean).map(s => { const i = s.indexOf(' '); return i < 0 ? { type: 'website', url: s } : { type: s.slice(0, i).toLowerCase(), url: s.slice(i + 1).trim() }; });
-  if (t === 'pairs') return v.split('\n').map(s => s.trim()).filter(Boolean).map(s => { const i = s.indexOf(' '); return i < 0 ? { label: 'paper', url: s } : { label: s.slice(0, i), url: s.slice(i + 1).trim() }; });
+  if (t === 'pairs') return v.split('\n').map(s => s.trim()).filter(Boolean).map(s => { const i = s.lastIndexOf(' '); return i < 0 ? { label: 'paper', url: s } : { label: s.slice(0, i).trim(), url: s.slice(i + 1).trim() }; });
   if (t === 'photos') return v.split('\n').map(s => s.trim()).filter(Boolean).map(s => { const i = s.indexOf('|'); return i < 0 ? { url: s, caption: '' } : { url: s.slice(0, i).trim(), caption: s.slice(i + 1).trim() }; });
+  if (t === 'places') { const o = {}; for (const line of v.split('\n')) { const m = line.trim().match(/^(.+?)\s+(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)$/); if (m) o[m[1]] = [Number(m[2]), Number(m[3])]; } return o; }
   if (t === 'cats') { const o = {}; for (const line of v.split('\n')) { const m = line.trim().match(/^(\S+)\s+(\S+)\s+(.+)$/); if (m) o[m[1]] = { icon: m[2], name: m[3].trim() }; else if (line.trim()) { const [k, ...rest] = line.trim().split(/\s+/); o[k] = { icon: '', name: rest.join(' ') || k }; } } return o; }
   return v;
 }

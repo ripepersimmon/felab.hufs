@@ -34,7 +34,7 @@ jobs:
       - name: Collect public files
         run: |
           mkdir -p _site/images _site/blog
-          cp *.html style.css favicon.ico felab.bib _site/
+          cp *.html style.css globe.js favicon.ico felab.bib _site/
           cp sitemap.xml robots.txt feed.xml _site/
           cp -r images/. _site/images/
           cp -r blog/. _site/blog/

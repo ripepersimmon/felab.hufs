@@ -26,9 +26,10 @@ const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
 // Recomputed at the start of every build(), since the admin server keeps one
 // process running across many builds.
 let CSS_VERSION = '';
-function cssVersion() {
+function cssVersion() { return fileVersion('style.css'); }
+function fileVersion(file) {
   try {
-    return require('crypto').createHash('sha1').update(fs.readFileSync(path.join(ROOT, 'style.css'))).digest('hex').slice(0, 8);
+    return require('crypto').createHash('sha1').update(fs.readFileSync(path.join(ROOT, file))).digest('hex').slice(0, 8);
   } catch (e) { return String(Date.now()); }
 }
 
@@ -555,6 +556,63 @@ ${p.titleKr ? `\t\t\t\t\t<p class="post-kr">${p.titleKr}</p>\n` : ''}\t\t\t\t\t<
 \t\t\t</a>`;
 }
 
+// Conference-trip globe. A post takes part when its "route" lists places
+// (separated by ">") that are all in data.places. The drawing is done by
+// globe.js in the browser; here only the data and the static frame are
+// written, so the page still reads fine without JavaScript.
+function tripsOf(data, posts) {
+  const places = data.places || {};
+  const trips = [];
+  for (const p of posts) {
+    if (!p.route) continue;
+    const path = String(p.route).split(/\s*(?:>|→|->)\s*/).map(x => x.trim()).filter(Boolean);
+    const missing = path.filter(n => !Array.isArray(places[n]) || places[n].length < 2);
+    if (path.length < 2 || missing.length) {
+      console.warn(`blog: route "${p.route}" of "${stripTags(p.title)}" skipped${missing.length ? ' (unknown place: ' + missing.join(', ') + ')' : ''}`);
+      continue;
+    }
+    trips.push({
+      label: stripTags(p.tripLabel || p.title),
+      date: p.date,
+      when: dateLong(String(p.date || '').slice(0, 7)),
+      href: `blog/${postId(p)}.html`,
+      path,
+      photos: (p.photos || []).filter(x => x && x.url).map(x => ({ url: x.url, caption: x.caption || '' })),
+    });
+  }
+  return trips;
+}
+
+function globeSection(data, posts) {
+  const trips = tripsOf(data, posts);
+  if (!trips.length) return '';
+  const used = {};
+  for (const t of trips) for (const n of t.path) used[n] = data.places[n].slice(0, 2).map(Number);
+  const g = (data.site.blog && data.site.blog.globe) || {};
+  // Inside a <script> block only "</" and "-->" could break out; escape them.
+  const payload = JSON.stringify({ places: used, trips, noPhotos: g.noPhotos || 'No photos yet. Read the post \u2192' })
+    .replace(/</g, '\\u003c').replace(/-->/g, '--\\u003e');
+  const buttons = trips.map((t, i) =>
+    `\t\t\t\t<button type="button" data-trip="${i}"><span class="n">${i + 1}</span>${esc(t.label)}<span class="when">${esc(t.path[t.path.length - 1])}, ${esc(t.when)}</span></button>`).join('\n');
+  const list = trips.map(t => `\t\t\t\t<li><a href="${esc(t.href)}">${esc(t.label)}</a> — ${esc(t.path.join(' → '))}, ${esc(t.when)}</li>`).join('\n');
+  return `\t\t<div class="globe" id="globe">
+\t\t\t<h3>${esc(g.title || 'Conference trips')}</h3>
+\t\t\t<div class="globe-stage">
+\t\t\t\t<canvas role="img" aria-label="Globe showing the lab's conference trips"></canvas>
+\t\t\t\t<div class="globe-photos"></div>
+\t\t\t</div>
+\t\t\t<div class="globe-trips">
+${buttons}
+\t\t\t</div>
+\t\t\t<p class="globe-hint">${g.hint || 'Drag to turn the globe. Click a route, or a trip above, to see photos from it.'}</p>
+\t\t\t<noscript><ul class="globe-list">
+${list}
+\t\t\t</ul></noscript>
+\t\t\t<script type="application/json" id="globe-data">${payload}</script>
+\t\t</div>
+`;
+}
+
 function pageBlog(data) {
   const s = data.site;
   const cats = data.blogCategories || {};
@@ -606,6 +664,8 @@ function pageBlog(data) {
 \t\t<h2>${esc((s.blog && s.blog.label) || 'Blog')}</h2>
 ${intro}`;
   if (!posts.length) return h + `\t\t<p>No posts yet.</p>\n\t</div>\n` + foot(s);
+  const globe = globeSection(data, posts);
+  h += globe;
 
   // The inputs come first: the rules above reach the buttons and the cards
   // through the sibling combinator, so both have to follow the inputs.
@@ -627,7 +687,10 @@ ${intro}`;
   h += `\t\t<div class="cards">\n${posts.map(p => postCard(p, cats)).join('\n')}\n\t\t</div>\n`;
   if (byYear && byType) h += `\t\t<p class="empty">No posts match this filter.</p>\n`;
   h += `\t</div>\n`;
-  return h + foot(s);
+  h += foot(s);
+  // The only script on the site; loaded on this page alone, and only with a trip to show.
+  if (globe) h = h.replace('</body>', `<script src="globe.js?v=${fileVersion('globe.js')}"></script>\n</body>`);
+  return h;
 }
 
 function pagePost(data, p) {

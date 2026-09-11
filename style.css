@@ -844,3 +844,166 @@ details.bib > pre {
 @media (max-width: 640px) {
 	.filter-label { width: 100%; }
 }
+
+/* Conference-trip globe on the Blog page (drawn by globe.js) */
+
+.globe {
+	margin: 18px 0 34px;
+	padding-bottom: 22px;
+	border-bottom: 1px solid #E5E5E5;
+}
+
+.globe h3 {
+	margin: 0 0 4px;
+	font-size: 1.05em;
+}
+
+.globe-stage {
+	position: relative;
+	width: 100%;
+	overflow: visible;
+}
+
+.globe-stage canvas {
+	display: block;
+	touch-action: pan-y;
+	user-select: none;
+	-webkit-user-select: none;
+}
+
+.globe-photos {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+}
+
+/* Each photo starts folded up on the destination (--x0/--y0) and drifts out to
+   its slot (--x/--y), a little tilted, like prints laid on a table. */
+.gphoto {
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 180px;
+	margin: 0;
+	padding: 6px 6px 7px;
+	background: #fff;
+	border: 1px solid #D5D5D5;
+	box-shadow: 0 3px 12px rgba(0, 0, 0, 0.16);
+	pointer-events: auto;
+	opacity: 0;
+	transform: translate(calc(var(--x0) - 90px), calc(var(--y0) - 70px)) rotate(0deg) scale(0.2);
+	transition: transform 0.55s cubic-bezier(0.2, 0.8, 0.25, 1), opacity 0.35s;
+}
+
+.gphoto.in {
+	opacity: 1;
+	transform: translate(var(--x), var(--y)) rotate(var(--r)) scale(1);
+}
+
+.gphoto.out {
+	opacity: 0;
+	transform: translate(calc(var(--x0) - 90px), calc(var(--y0) - 70px)) rotate(0deg) scale(0.4);
+	transition: transform 0.4s ease-in, opacity 0.3s;
+}
+
+.gphoto a { display: block; border: none; }
+
+.gphoto img {
+	display: block;
+	width: 100%;
+	aspect-ratio: 4 / 3;
+	object-fit: cover;
+	background: #EEF2F6;
+}
+
+.gphoto figcaption {
+	font-size: 0.72em;
+	line-height: 1.35;
+	color: #555;
+	padding: 6px 2px 0;
+}
+
+.gphoto.gnote {
+	width: 170px;
+	padding: 12px 14px;
+	font-size: 0.85em;
+	line-height: 1.4;
+}
+
+.gphoto:hover { border-color: #0B3D6E; z-index: 2; }
+
+.globe-trips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px 8px;
+	margin: 6px 0 6px;
+}
+
+.globe-trips button {
+	font: inherit;
+	font-size: 0.85em;
+	padding: 4px 11px 4px 6px;
+	border: 1px solid #CBD5E1;
+	border-radius: 0;
+	background: #fff;
+	color: #1A1A1A;
+	cursor: pointer;
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.globe-trips button .n {
+	display: inline-block;
+	min-width: 18px;
+	height: 18px;
+	line-height: 18px;
+	text-align: center;
+	border-radius: 9px;
+	font-size: 0.8em;
+	background: #EEF2F6;
+	color: #0B3D6E;
+}
+
+.globe-trips button .when {
+	color: #777;
+	font-size: 0.9em;
+}
+
+.globe-trips button:hover { border-color: #0B3D6E; color: #0B3D6E; }
+
+.globe-trips button.on {
+	border-color: #0B3D6E;
+	background: #0B3D6E;
+	color: #fff;
+}
+
+.globe-trips button.on .n { background: #fff; }
+.globe-trips button.on .when { color: #CFD9E5; }
+
+.globe-hint {
+	font-size: 0.8em;
+	color: #777;
+	margin: 0;
+}
+
+.globe-list { margin: 8px 0 0; padding-left: 20px; }
+
+/* Narrow screens: no room beside the globe, so the photos line up under it. */
+@media (max-width: 700px) {
+	.globe-photos {
+		position: static;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 10px;
+		padding-top: 8px;
+	}
+	.gphoto {
+		position: static;
+		width: calc(50% - 5px);
+		box-sizing: border-box;
+		transform: none;
+		transition: opacity 0.35s;
+	}
+	.gphoto.in, .gphoto.out { transform: none; }
+}
