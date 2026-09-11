@@ -545,8 +545,25 @@
       "title": "ICAIF 2025 견학",
       "titleKr": "The 6th ACM International Conference on AI in Finance, Singapore",
       "summary": "2025년 11월 15일부터 18일까지 싱가포르에서 열린 제6회 ACM International Conference on AI in Finance(ICAIF '25)를 견학했습니다.",
-      "text": "<p>2025년 11월 15일부터 18일까지 싱가포르 Sheraton Towers에서 열린 <b>제6회 ACM International Conference on AI in Finance(ICAIF '25)</b>를 견학했습니다. 발표 없이 참관 목적으로 다녀온 학회로, 금융 인공지능 분야의 최신 연구 흐름을 살펴보는 자리였습니다. ICAIF가 미국 밖에서 열린 것은 이번이 처음이었습니다.</p>",
-      "photos": [],
+      "text": "<p>2025년 11월 15일부터 18일까지 싱가포르 Sheraton Towers에서 열린 <b>제6회 ACM International Conference on AI in Finance(ICAIF '25)</b>를 견학했습니다. 발표 없이 참관 목적으로 다녀온 학회로, 금융 인공지능 분야의 최신 연구 흐름을 살펴보는 자리였습니다. 학생들은 발표를 보며 많은 인사이트를 얻었다고 합니다. 다음에는 참관이 아닌 발표를 목적으로 ICAIF를 가고자 합니다. </p>",
+      "photos": [
+        {
+          "url": "images/blog/2511icaif/1_ICAIF.jpg",
+          "caption": "ICAIF 2025 단체 사진. 오른쪽부터 박사홍 학부연구생, 공형우 교수님, 우민주 학부연구생, 권규리 학부연구생"
+        },
+        {
+          "url": "images/blog/2511icaif/2_bridgesession.jpg",
+          "caption": "Bridging Prediction and Optimization: Decision-Focused Learning in Financial Optimization 참관"
+        },
+        {
+          "url": "images/blog/2511icaif/3_songfabakute.jpg",
+          "caption": "싱가포르에서 몇 번을 먹은 송파바쿠테."
+        },
+        {
+          "url": "images/blog/2511icaif/4_nicesahong.jpg",
+          "caption": "ICAIF 견학와서 신난 박사홍 학부연구생. 많은 인사이트를 얻었다는 후문이 있다."
+        }
+      ],
       "links": [
         {
           "label": "ICAIF 2025 website",

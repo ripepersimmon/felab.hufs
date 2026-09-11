@@ -18,10 +18,10 @@ const SESSION_TTL = 12 * 60 * 60 * 1000;
 const MIN_PASSWORD = 8;
 const DEFAULT_PASSWORD = 'felab';
 const IMAGE_EXT = new Set(['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp']);
-// Files the preview may serve from the site root: pages, styles, and the
-// generated favicon, sitemap, feed and BibTeX. admin/ and data/ stay blocked
-// by the path checks in serveStatic.
-const ROOT_EXT = new Set(['.html', '.css', '.ico', '.xml', '.txt', '.bib']);
+// Files the preview may serve from the site root: pages, styles, the globe
+// script, and the generated favicon, sitemap, feed and BibTeX. admin/ and
+// data/ stay blocked by the path checks in serveStatic.
+const ROOT_EXT = new Set(['.html', '.css', '.js', '.ico', '.xml', '.txt', '.bib']);
 
 // Config / password ----------------------------------------------------------
 
@@ -120,6 +120,7 @@ function isJson(req) { return /^application\/json\b/i.test(req.headers['content-
 
 const MIME = {
   '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8',
+  '.js': 'text/javascript; charset=utf-8',
   '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.gif': 'image/gif',
   '.svg': 'image/svg+xml', '.webp': 'image/webp', '.ico': 'image/x-icon',
   '.xml': 'application/xml; charset=utf-8', '.txt': 'text/plain; charset=utf-8',
