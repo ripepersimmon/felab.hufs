@@ -107,6 +107,8 @@ const SECTIONS = [
   { id: 'research', label: 'Research', kind: 'list', path: 'research', legend: r => r.title || 'New area', fields: [
     { k: 'title', l: 'Title' },
     { k: 'text', l: 'Description (HTML allowed)', t: 'html' },
+  ], extra: [
+    { path: 'ongoing', k: '', l: 'Ongoing research topics, one per line (shown as a list under the areas; leave empty to hide the section)', t: 'lines', tall: true },
   ]},
   { id: 'projects', label: 'Projects', kind: 'list', path: 'projects', legend: p => p.title || 'New project', fields: [
     { k: 'title', l: 'Title' },

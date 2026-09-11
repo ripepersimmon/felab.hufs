@@ -152,6 +152,15 @@
       "text": "Stochastic volatility models and early-warning indicators for market stress."
     }
   ],
+  "ongoing": [
+    "Univariate time-series anomaly detection",
+    "Multivariate time-series anomaly detection",
+    "Property valuation across heterogeneous urban markets",
+    "Aqueous solubility prediction with multimodal molecular representations",
+    "Understanding and controlling investment biases in large language models",
+    "Evaluating and diagnosing synthetic tabular data",
+    "Theoretical foundations of in-context learning"
+  ],
   "projects": [
     {
       "title": "Large-Scale Financial Graph Analysis for AML Detection",

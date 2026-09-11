@@ -396,6 +396,17 @@ function pageResearch(data) {
 ${data.research.map(r => `\n\t\t<h3>${r.title}</h3>\n\t\t<p>${r.text}</p>`).join('\n')}
 \t</div>
 `;
+  const ongoing = (data.ongoing || []).filter(Boolean);
+  if (ongoing.length) {
+    h += `
+\t<div class="section">
+\t\t<h2>Ongoing Research</h2>
+\t\t<ul>
+${ongoing.map(t => `\t\t\t<li>${t}</li>`).join('\n')}
+\t\t</ul>
+\t</div>
+`;
+  }
   return h + foot(s);
 }
 
