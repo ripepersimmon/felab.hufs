@@ -78,7 +78,7 @@ async function updateSite() {
   return courses;
 }
 
-module.exports = { fetchCourses, updateSite };
+module.exports = { updateSite };
 
 if (require.main === module) {
   updateSite().then(c => {

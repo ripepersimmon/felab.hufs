@@ -22,11 +22,10 @@ const EXT_ICON = '<svg class="ext" viewBox="0 0 24 24" width="13" height="13" ar
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
   'August', 'September', 'October', 'November', 'December'];
 
-// Short hash of style.css so browsers fetch a fresh copy whenever it changes.
-// Recomputed at the start of every build(), since the admin server keeps one
-// process running across many builds.
+// Short hash of a file so browsers fetch a fresh copy whenever it changes. The
+// style.css hash is recomputed at the start of every build(), since the admin
+// server keeps one process running across many builds.
 let CSS_VERSION = '';
-function cssVersion() { return fileVersion('style.css'); }
 function fileVersion(file) {
   try {
     return require('crypto').createHash('sha1').update(fs.readFileSync(path.join(ROOT, file))).digest('hex').slice(0, 8);
@@ -101,7 +100,7 @@ ${meta.join('\n')}
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" type="image/png" href="images/favicon-32.png" sizes="32x32">
 <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
-<link rel="alternate" type="application/rss+xml" title="${esc(site.title)} — ${esc((site.blog && site.blog.label) || 'Blog')}" href="feed.xml">
+<link rel="alternate" type="application/rss+xml" title="${esc(site.title)} — ${esc(blogLabel(site))}" href="feed.xml">
 <link rel="stylesheet" href="style.css?v=${CSS_VERSION}">
 ${o.style ? `<style>
 ${o.style}</style>
@@ -121,10 +120,12 @@ ${blogMenuItem(site, pageTitle)}
 `;
 }
 
+const blogLabel = site => (site.blog && site.blog.label) || 'Blog';
+
 function blogMenuItem(site, pageTitle) {
   const b = site.blog || {};
   if (b.enabled === false) return '';
-  const label = b.label || 'Blog';
+  const label = blogLabel(site);
   if (b.external) {
     return `\t\t\t<li class="menu-right"><a href="${esc(b.external)}" target="_blank" rel="noopener">${esc(label)} ${EXT_ICON}</a></li>`;
   }
@@ -166,12 +167,19 @@ function authorsHtml(authors, data) {
   }).filter(Boolean).join(', ');
 }
 
+// DOI and arXiv id of a publication, from its links. Citation lookups and the
+// BibTeX entry both key off these.
+function pubIds(p) {
+  const urls = (p.links || []).map(l => l.url);
+  const find = re => urls.map(u => (u.match(re) || [])[1]).find(Boolean);
+  return { doi: find(/doi\.org\/(.+)$/), arxiv: find(/arxiv\.org\/(?:abs|pdf)\/([\d.]+)/) };
+}
+
 // Citation counts come from data/citations.json, refreshed by fetch-citations.js.
 // The file is optional: with no file, publications simply show no count.
 function citeCount(p, cites) {
-  const key = (p.links || []).map(l => l.url)
-    .map(u => (u.match(/doi\.org\/(.+)$/) || [])[1] || (u.match(/arxiv\.org\/(?:abs|pdf)\/([\d.]+)/) || [])[1])
-    .find(Boolean);
+  const { doi, arxiv } = pubIds(p);
+  const key = doi || arxiv;
   if (!key || !cites) return null;
   const e = cites[key.toLowerCase()];
   return e && e.count > 0 ? e : null;
@@ -240,10 +248,9 @@ function bibName(author) {
 
 function bibEntry(p) {
   const authors = p.authors.split(',').map(a => a.trim()).filter(Boolean).map(bibName).join(' and ');
-  const doi = (p.links || []).map(l => l.url).find(u => /doi\.org\//.test(u));
-  const arx = (p.links || []).map(l => l.url).find(u => /arxiv\.org\//.test(u));
+  const { doi, arxiv } = pubIds(p);
   const f = [['author', authors], ['title', stripTags(p.title)], ['year', String(p.year)]];
-  let type = 'article';
+  let type;
   if (p.type === 'journal') { type = 'article'; f.push(['journal', p.venue]); }
   else if (p.type === 'conference') { type = 'inproceedings'; f.push(['booktitle', p.venue]); }
   else if (p.type === 'thesis') {
@@ -252,13 +259,10 @@ function bibEntry(p) {
     f.push(['school', m ? m[1].trim() : p.venue]);
   } else {
     type = 'misc';
-    if (arx) {
-      const id = (arx.match(/arxiv\.org\/(?:abs|pdf)\/([\d.]+)/) || [])[1];
-      if (id) { f.push(['eprint', id], ['archivePrefix', 'arXiv']); }
-      f.push(['howpublished', 'arXiv preprint']);
-    } else f.push(['howpublished', p.venue]);
+    if (arxiv) f.push(['eprint', arxiv], ['archivePrefix', 'arXiv'], ['howpublished', 'arXiv preprint']);
+    else f.push(['howpublished', p.venue]);
   }
-  if (doi) f.push(['doi', doi.replace(/^https?:\/\/(dx\.)?doi\.org\//, '')]);
+  if (doi) f.push(['doi', doi]);
   const used = f.filter(([, v]) => v);
   const pad = Math.max(...used.map(([k]) => k.length));
   const body = used.map(([k, v]) => `  ${k.padEnd(pad)} = {${String(v).replace(/&amp;/g, '&')}}`).join(',\n');
@@ -272,7 +276,6 @@ function bibFile(data) {
 
 // News ---------------------------------------------------------------------
 
-function monthLong(d) { const [y, m] = d.split('-'); return `${MONTHS[+m - 1] || m} ${y}`; }
 function monthShort(d) { const [y, m] = d.split('-'); return `${(MONTHS[+m - 1] || m).slice(0, 3)} ${y}`; }
 
 // Pages --------------------------------------------------------------------
@@ -499,7 +502,7 @@ function pageNews(data) {
 `;
   let last = null;
   for (const n of data.news) {
-    if (n.date !== last) { h += `\t\t\t<dt>${monthLong(n.date)}</dt>\n`; last = n.date; }
+    if (n.date !== last) { h += `\t\t\t<dt>${dateLong(n.date)}</dt>\n`; last = n.date; }
     h += `\t\t\t<dd>${markMembers(n.text, data)}</dd>\n`;
   }
   h += `\t\t</dl>
@@ -510,13 +513,15 @@ function pageNews(data) {
 
 // Blog ---------------------------------------------------------------------
 
-// Safe id / class fragment built from a category key.
-function cls(s) { return String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'x'; }
-
+// Safe id / class / file-name fragment from a title or category key.
 function slug(s) {
   return String(s).toLowerCase().replace(/[^a-z0-9가-힣]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'post';
 }
 
+function sortedPosts(data) { return (data.blog || []).slice().sort((a, b) => (b.date || '').localeCompare(a.date || '')); }
+function photosOf(p) { return (p.photos || []).filter(x => x && x.url); }
+
+// "2026-03-05" -> "March 5, 2026"; "2026-03" -> "March 2026".
 function dateLong(d) {
   const [y, m, day] = String(d).split('-');
   return `${MONTHS[+m - 1] || m} ${day ? +day + ', ' : ''}${y}`;
@@ -526,11 +531,7 @@ function postId(p) { return p.id || `${p.date}-${slug(p.title)}`; }
 
 function stripTags(html) { return String(html || '').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim(); }
 
-function postSummary(p) {
-  if (p.summary) return p.summary;
-  const t = stripTags(p.text);
-  return t.length > 170 ? t.slice(0, 168).replace(/\s+\S*$/, '') + '…' : t;
-}
+function postSummary(p) { return p.summary || metaDesc(p.text, 170); }
 
 function catChip(cats, type) {
   const c = cats[type];
@@ -540,12 +541,12 @@ function catChip(cats, type) {
 
 function postCard(p, cats) {
   const id = postId(p);
-  const photos = (p.photos || []).filter(x => x && x.url);
+  const photos = photosOf(p);
   const c = cats[p.type] || {};
   const thumb = photos.length
     ? `<img src="${esc(photos[0].url)}" alt="${esc(p.title)}" loading="lazy">`
     : `<div class="thumb-blank">${c.icon || ''}</div>`;
-  return `\t\t\t<a class="card y${esc(String(p.date || '').slice(0, 4))} c-${cls(p.type)}" href="blog/${esc(id)}.html">
+  return `\t\t\t<a class="card y${esc(String(p.date || '').slice(0, 4))} c-${slug(p.type)}" href="blog/${esc(id)}.html">
 \t\t\t\t<div class="thumb">${thumb}</div>
 \t\t\t\t<div class="card-body">
 \t\t\t\t\t<p class="card-meta">${catChip(cats, p.type)}<time>${dateLong(p.date)}</time></p>
@@ -577,7 +578,7 @@ function tripsOf(data, posts) {
       when: dateLong(String(p.date || '').slice(0, 7)),
       href: `blog/${postId(p)}.html`,
       path,
-      photos: (p.photos || []).filter(x => x && x.url).map(x => ({ url: x.url, caption: x.caption || '' })),
+      photos: photosOf(p).map(x => ({ url: x.url, caption: x.caption || '' })),
     });
   }
   return trips;
@@ -617,8 +618,8 @@ ${list}
 function pageBlog(data) {
   const s = data.site;
   const cats = data.blogCategories || {};
-  const posts = (data.blog || []).slice().sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-  const intro = (s.blog && s.blog.intro) ? `\t\t<p class="blog-intro">${s.blog.intro}</p>\n` : '';
+  const posts = sortedPosts(data);
+  const intro = (s.blog && s.blog.intro) || '';
 
   // Two filters: by year and by category. Both are radio groups, and because
   // each one only ever hides cards, picking one from each intersects for free.
@@ -638,8 +639,8 @@ function pageBlog(data) {
   }
   if (byYear) css.push(`#yf-all:checked ~ .filters label[for="yf-all"] { ${ON} }`);
   for (const t of (byType ? types : [])) {
-    css.push(`#cf-${cls(t)}:checked ~ .cards .card:not(.c-${cls(t)}) { display: none; }`);
-    css.push(`#cf-${cls(t)}:checked ~ .filters label[for="cf-${cls(t)}"] { ${ON} }`);
+    css.push(`#cf-${slug(t)}:checked ~ .cards .card:not(.c-${slug(t)}) { display: none; }`);
+    css.push(`#cf-${slug(t)}:checked ~ .filters label[for="cf-${slug(t)}"] { ${ON} }`);
   }
   if (byType) css.push(`#cf-all:checked ~ .filters label[for="cf-all"] { ${ON} }`);
   // A year and a category together can match nothing. Which pairs those are is
@@ -649,21 +650,21 @@ function pageBlog(data) {
     for (const y of years) {
       for (const t of types) {
         if (!posts.some(p => (p.date || '').slice(0, 4) === y && p.type === t)) {
-          css.push(`#yf-${y}:checked ~ #cf-${cls(t)}:checked ~ .empty { display: block; }`);
+          css.push(`#yf-${y}:checked ~ #cf-${slug(t)}:checked ~ .empty { display: block; }`);
         }
       }
     }
   }
 
   let h = head(s, 'Blog', {
-    desc: (s.blog && s.blog.intro) || '',
+    desc: intro,
     path: 'blog.html',
     style: css.length ? css.join('\n') + '\n' : '',
   });
   h += `
 \t<div class="section blog">
-\t\t<h2>${esc((s.blog && s.blog.label) || 'Blog')}</h2>
-${intro}`;
+\t\t<h2>${esc(blogLabel(s))}</h2>
+${intro ? `\t\t<p class="blog-intro">${intro}</p>\n` : ''}`;
   if (!posts.length) return h + `\t\t<p>No posts yet.</p>\n\t</div>\n` + foot(s);
   const globe = globeSection(data, posts);
   h += globe;
@@ -678,10 +679,10 @@ ${intro}`;
       years.map(y => `<label for="yf-${y}">${y}</label>`).join('') + `</p>`);
   }
   if (byType) {
-    h += types.map(t => `\t\t<input class="bfilter" type="radio" name="cat" id="cf-${cls(t)}">`).join('\n') + '\n';
+    h += types.map(t => `\t\t<input class="bfilter" type="radio" name="cat" id="cf-${slug(t)}">`).join('\n') + '\n';
     h += `\t\t<input class="bfilter" type="radio" name="cat" id="cf-all" checked>\n`;
     rows.push(`\t\t\t<p class="filter-row"><span class="filter-label">Category</span><label for="cf-all">All</label>` +
-      types.map(t => `<label for="cf-${cls(t)}">${cats[t].icon ? cats[t].icon + ' ' : ''}${esc(cats[t].name || t)}</label>`).join('') + `</p>`);
+      types.map(t => `<label for="cf-${slug(t)}">${cats[t].icon ? cats[t].icon + ' ' : ''}${esc(cats[t].name || t)}</label>`).join('') + `</p>`);
   }
   if (rows.length) h += `\t\t<div class="filters">\n${rows.join('\n')}\n\t\t</div>\n`;
 
@@ -701,11 +702,11 @@ function pagePost(data, p) {
   const chip = catChip(cats, p.type);
   if (chip) meta.push(chip);
   if (p.location) meta.push(esc(p.location));
-  const photos = (p.photos || []).filter(x => x && x.url);
+  const photos = photosOf(p);
   let h = head(s, 'Blog', { base: '../', docTitle: stripTags(p.title), desc: postSummary(p), path: `blog/${postId(p)}.html`, image: photos.length ? photos[0].url : null, type: 'article' });
   h += `
 \t<div class="section blog">
-\t\t<p class="crumb"><a href="blog.html">&larr; ${esc((s.blog && s.blog.label) || 'Blog')}</a></p>
+\t\t<p class="crumb"><a href="blog.html">&larr; ${esc(blogLabel(s))}</a></p>
 \t\t<article class="post single" id="${esc(postId(p))}">
 \t\t\t<p class="post-meta">${meta.join(' &middot; ')}</p>
 \t\t\t<h2 class="post-title">${p.title}</h2>
@@ -738,8 +739,7 @@ function rfc822(date) {
 
 function feedXml(data) {
   const s = data.site;
-  const posts = (data.blog || []).slice().sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-  const items = posts.map(p => `\t<item>
+  const items = sortedPosts(data).map(p => `\t<item>
 \t\t<title>${esc(stripTags(p.title))}</title>
 \t\t<link>${esc(abs(s, 'blog/' + postId(p) + '.html'))}</link>
 \t\t<guid isPermaLink="true">${esc(abs(s, 'blog/' + postId(p) + '.html'))}</guid>
@@ -749,7 +749,7 @@ function feedXml(data) {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
 <channel>
-\t<title>${esc(stripTags(s.title))} — ${esc((s.blog && s.blog.label) || 'Blog')}</title>
+\t<title>${esc(stripTags(s.title))} — ${esc(blogLabel(s))}</title>
 \t<link>${esc(abs(s, 'blog.html'))}</link>
 \t<atom:link href="${esc(abs(s, 'feed.xml'))}" rel="self" type="application/rss+xml"/>
 \t<description>${esc(stripTags((s.blog && s.blog.intro) || s.title))}</description>
@@ -780,7 +780,7 @@ function robotsTxt(data) {
 }
 
 function build() {
-  CSS_VERSION = cssVersion();
+  CSS_VERSION = fileVersion('style.css');
   const data = JSON.parse(fs.readFileSync(DATA, 'utf8'));
   // Citation counts are refreshed separately (fetch-citations.js) and are optional.
   try { data.citations = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'citations.json'), 'utf8')).works; } catch (e) { data.citations = null; }

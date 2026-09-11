@@ -183,7 +183,26 @@ function el(tag, attrs, ...children) {
   return e;
 }
 
-function fieldInput(f, value, ctx) {
+// Every write to the server: JSON in, JSON out, throws with the server's message.
+async function api(path, body) {
+  const r = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}) });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error || r.statusText || 'request failed');
+  return j;
+}
+async function upload(fl, folder) {
+  setStatus('Uploading ' + fl.name + '…');
+  const b64 = await new Promise(r => { const rd = new FileReader(); rd.onload = () => r(rd.result.split(',')[1]); rd.readAsDataURL(fl); });
+  return (await api('/api/upload', { name: fl.name, data: b64, folder })).path;
+}
+// The label that carries a field: its key and type for collectAll(), and the
+// input that holds its value.
+function field(f, t, input, ...nodes) {
+  const lab = el('label', { class: 'f' }, el('span', {}, f.l), ...nodes); lab.dataset.k = f.k; lab.dataset.t = t; lab._input = input;
+  return lab;
+}
+
+function fieldInput(f, value) {
   const t = f.t || 'text';
   let input;
   if (t === 'checkbox') {
@@ -203,19 +222,16 @@ function fieldInput(f, value, ctx) {
     const file = el('input', { type: 'file', accept: 'image/*', multiple: true });
     file.addEventListener('change', async () => {
       const files = [...file.files]; if (!files.length) return;
-      for (const fl of files) {
-        setStatus('Uploading ' + fl.name + '…');
-        const b64 = await new Promise(r => { const rd = new FileReader(); rd.onload = () => r(rd.result.split(',')[1]); rd.readAsDataURL(fl); });
-        const res = await fetch('/api/upload', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: fl.name, data: b64, folder: 'blog' }) });
-        const j = await res.json();
-        if (!res.ok) { setStatus(j.error || 'upload failed', 'err'); return; }
-        input.value = (input.value.trim() ? input.value.trim() + '\n' : '') + j.path + ' | ';
-      }
+      try {
+        for (const fl of files) {
+          const p = await upload(fl, 'blog');
+          input.value = (input.value.trim() ? input.value.trim() + '\n' : '') + p + ' | ';
+        }
+      } catch (e) { return setStatus(e.message, 'err'); }
       file.value = '';
       setStatus(`Uploaded ${files.length} photo(s). Add captions after the "|" and Save.`, 'ok');
     });
-    const lab = el('label', { class: 'f' }, el('span', {}, f.l), input, file); lab.dataset.k = f.k; lab.dataset.t = t; lab._input = input;
-    return lab;
+    return field(f, t, input, input, file);
   }
   else if (t === 'number') input = el('input', { type: 'number', value: value == null ? '' : value });
   else if (t === 'photo') {
@@ -224,21 +240,16 @@ function fieldInput(f, value, ctx) {
     const file = el('input', { type: 'file', accept: 'image/*' });
     file.addEventListener('change', async () => {
       const fl = file.files[0]; if (!fl) return;
-      setStatus('Uploading ' + fl.name + '…');
-      const b64 = await new Promise(r => { const rd = new FileReader(); rd.onload = () => r(rd.result.split(',')[1]); rd.readAsDataURL(fl); });
-      const res = await fetch('/api/upload', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: fl.name, data: b64 }) });
-      const j = await res.json();
-      if (!res.ok) return setStatus(j.error || 'upload failed', 'err');
-      input.value = j.path; img.src = '/' + j.path + '?t=' + Date.now();
-      setStatus('Uploaded to ' + j.path + '. Remember to Save.', 'ok');
+      try {
+        input.value = await upload(fl);
+        img.src = '/' + input.value + '?t=' + Date.now();
+        setStatus('Uploaded to ' + input.value + '. Remember to Save.', 'ok');
+      } catch (e) { setStatus(e.message, 'err'); }
     });
-    const wrap = el('div', { class: 'photo-field' }, img, el('div', {}, input, file));
-    const lab = el('label', { class: 'f' }, el('span', {}, f.l), wrap); lab.dataset.k = f.k; lab.dataset.t = t; lab._input = input;
-    return lab;
+    return field(f, t, input, el('div', { class: 'photo-field' }, img, el('div', {}, input, file)));
   }
   else input = el('input', { type: 'text', value: value == null ? '' : String(value) });
-  const lab = el('label', { class: 'f' }, el('span', {}, f.l), input); lab.dataset.k = f.k; lab.dataset.t = t; lab._input = input;
-  return lab;
+  return field(f, t, input, input);
 }
 
 function fieldValue(lab) {
@@ -302,28 +313,30 @@ function renderAll() {
       p.append(el('label', { class: 'f' }, el('span', {}, 'Current password'), cur));
       p.append(el('label', { class: 'f' }, el('span', {}, 'New password'), nxt));
       p.append(el('button', { class: 'add', type: 'button', onclick: async () => {
-        const r = await fetch('/api/password', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ current: cur.value, next: nxt.value }) });
-        const j = await r.json(); setStatus(r.ok ? 'Password changed.' : j.error, r.ok ? 'ok' : 'err'); if (r.ok) { cur.value = ''; nxt.value = ''; }
+        try {
+          await api('/api/password', { current: cur.value, next: nxt.value });
+          setStatus('Password changed.', 'ok'); cur.value = ''; nxt.value = '';
+        } catch (e) { setStatus(e.message, 'err'); }
       } }, 'Change password'));
     }
     if (sec.fetchCourses) {
       p.append(el('p', {}, el('button', { class: 'add', type: 'button', onclick: async () => {
         if (!confirm('Replace the course list with data from the HUFS timetable system?')) return;
         setStatus('Fetching courses from wis.hufs.ac.kr…');
-        const r = await fetch('/api/fetch-courses', { method: 'POST' });
-        const j = await r.json();
-        if (!r.ok) return setStatus(j.error || 'fetch failed', 'err');
-        const d = await (await fetch('/api/data')).json(); DATA = d; renderAll(); show('courses');
-        setStatus(`Fetched ${j.count} courses and rebuilt the site.`, 'ok');
+        try {
+          const j = await api('/api/fetch-courses');
+          DATA = await (await fetch('/api/data')).json(); renderAll(); show('courses');
+          setStatus(`Fetched ${j.count} courses and rebuilt the site.`, 'ok');
+        } catch (e) { setStatus(e.message, 'err'); }
       } }, 'Fetch from HUFS timetable')));
     }
     if (sec.fetchCitations) {
       p.append(el('p', {}, el('button', { class: 'add', type: 'button', onclick: async () => {
         setStatus('Looking up citation counts on OpenAlex…');
-        const r = await fetch('/api/fetch-citations', { method: 'POST' });
-        const j = await r.json();
-        if (!r.ok) return setStatus(j.error || 'fetch failed', 'err');
-        setStatus(`Updated ${j.found} publications, ${j.total} citations in total.`, 'ok');
+        try {
+          const j = await api('/api/fetch-citations');
+          setStatus(`Updated ${j.found} publications, ${j.total} citations in total.`, 'ok');
+        } catch (e) { setStatus(e.message, 'err'); }
       } }, 'Refresh citation counts')));
     }
     if (sec.extra) {
@@ -370,9 +383,7 @@ document.getElementById('save').addEventListener('click', async () => {
   const btn = document.getElementById('save'); btn.disabled = true; setStatus('Saving…');
   try {
     const body = collectAll();
-    const r = await fetch('/api/data', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-    const j = await r.json();
-    if (!r.ok) throw new Error(j.error || 'save failed');
+    await api('/api/data', body);
     DATA = body;
     setStatus('Saved and rebuilt at ' + new Date().toLocaleTimeString() + '. Upload the HTML files and images/ to publish.', 'ok');
   } catch (e) { setStatus(e.message, 'err'); }

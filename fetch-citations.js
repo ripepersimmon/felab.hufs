@@ -74,7 +74,7 @@ async function updateSite() {
   return result;
 }
 
-module.exports = { updateSite, fetchCitations };
+module.exports = { updateSite };
 
 if (require.main === module) {
   updateSite().catch(e => { console.error('Failed:', e.message); process.exit(1); });
