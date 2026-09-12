@@ -25,6 +25,8 @@ var buttons = Array.prototype.slice.call(wrap.querySelectorAll('.globe-trips but
 var ctx = canvas.getContext('2d');
 var NAVY = '#0B3D6E';
 var RED = '#B4262A';
+// Planned trips (hidden posts): light grey and dotted, a little darker when picked.
+var GREY = '#C3C9D1', GREY_ON = '#8B95A1';
 var RAD = Math.PI / 180;
 var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 function narrow() { return stage.clientWidth < 700; }
@@ -116,7 +118,9 @@ var LIFT = 0.035, SPREAD = 0.12;
 var groups = {};
 trips.forEach(function (t) { var k = t.path.join('>'); groups[k] = (groups[k] || 0) + 1; });
 var placed = {};
+var solid = {};   // places on at least one trip that is not just planned
 trips.forEach(function (t, i) {
+  if (!t.hidden) t.path.forEach(function (n) { solid[n] = true; });
   t.index = i;
   t.vecs = t.path.map(placeVec);
   var key = t.path.join('>'), n = groups[key], j = placed[key] || 0;
@@ -202,13 +206,14 @@ function draw() {
       if (pen) ctx.lineTo(p.x, p.y); else ctx.moveTo(p.x, p.y);
       pen = true;
     }
+    var color = t.hidden ? (on ? GREY_ON : GREY) : (on ? RED : NAVY);
     ctx.lineWidth = on ? 2.4 : 1.4;
-    ctx.strokeStyle = on ? RED : NAVY;
-    ctx.setLineDash(t === selected && !reduceMotion ? [7, 5] : []);
+    ctx.strokeStyle = color;
+    ctx.setLineDash(t.hidden ? [3, 4] : t === selected && !reduceMotion ? [7, 5] : []);
     ctx.lineDashOffset = -dashOffset;
     ctx.stroke();
     ctx.setLineDash([]);
-    arrowhead(t, on);
+    arrowhead(t, on, color);
     ctx.globalAlpha = 1;
   }
 
@@ -224,7 +229,7 @@ function draw() {
       q = proj(trips[i].vecs[k]);
       if (!q.vis) continue;
       ctx.beginPath(); ctx.arc(q.x, q.y, 3.6, 0, Math.PI * 2);
-      ctx.fillStyle = RED; ctx.fill();
+      ctx.fillStyle = solid[name] ? RED : GREY_ON; ctx.fill();
       ctx.lineWidth = 1.5; ctx.strokeStyle = '#fff'; ctx.stroke();
       ctx.fillStyle = '#1A1A1A';
       var left = q.x > CX + R * 0.55;
@@ -243,7 +248,7 @@ function draw() {
       var tw = ctx.measureText(lab.label).width;
       ctx.fillStyle = 'rgba(255,255,255,0.85)';
       ctx.fillRect(p.x - tw / 2 - 5, p.y - 24, tw + 10, 18);
-      ctx.fillStyle = RED;
+      ctx.fillStyle = lab.hidden ? GREY_ON : RED;
       ctx.fillText(lab.label, p.x, p.y - 8);
     }
   }
@@ -251,7 +256,7 @@ function draw() {
 }
 
 // Small triangle just short of the destination, pointing the way the trip went.
-function arrowhead(t, on) {
+function arrowhead(t, on, color) {
   var n = t.samples.length, tip = proj(t.samples[n - 4]), back = proj(t.samples[n - 9]);
   if (!tip.vis || !back.vis) return;
   var dx = tip.x - back.x, dy = tip.y - back.y, L = Math.hypot(dx, dy) || 1;
@@ -262,7 +267,7 @@ function arrowhead(t, on) {
   ctx.lineTo(tip.x - dx * s - dy * s * 0.45, tip.y - dy * s + dx * s * 0.45);
   ctx.lineTo(tip.x - dx * s + dy * s * 0.45, tip.y - dy * s - dx * s * 0.45);
   ctx.closePath();
-  ctx.fillStyle = on ? RED : NAVY;
+  ctx.fillStyle = color;
   ctx.fill();
 }
 
@@ -483,7 +488,10 @@ function showPhotos(t) {
   var d = proj(t.dest);
   if (!list.length) {
     var f = el('figure', 'gphoto gnote');
-    var a = el('a'); a.href = t.href; a.textContent = data.noPhotos || 'No photos yet. Read the post →';
+    // A planned trip has no page yet: just its name, "(예정)" included.
+    var a = el(t.href ? 'a' : 'span');
+    if (t.href) { a.href = t.href; a.textContent = data.noPhotos || 'No photos yet. Read the post →'; }
+    else a.textContent = t.label;
     f.appendChild(a);
     figs.push(place(f, 0, d));
   }

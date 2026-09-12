@@ -970,6 +970,10 @@ details.bib > pre {
 
 .globe-trips button:hover { border-color: #0B3D6E; color: #0B3D6E; }
 
+/* Planned trips: the post is hidden, only its route is on the globe. */
+.globe-trips button.planned { color: #777; border-style: dashed; }
+.globe-trips button.planned .n { color: #777; }
+
 .globe-trips button.on {
 	border-color: #0B3D6E;
 	background: #0B3D6E;

@@ -388,6 +388,7 @@
       "links": [],
       "route": "",
       "tripLabel": "",
+      "hidden": false,
       "id": "2026-09-website"
     },
     {
@@ -432,6 +433,7 @@
       ],
       "route": "Seoul > Gyeongju",
       "tripLabel": "2026 춘계공동학술대회",
+      "hidden": false,
       "id": "2026-06-kiie"
     },
     {
@@ -460,6 +462,7 @@
       ],
       "route": "",
       "tripLabel": "",
+      "hidden": false,
       "id": "2025-11-award"
     },
     {
@@ -492,6 +495,7 @@
       ],
       "route": "Seoul > Singapore",
       "tripLabel": "AAAI-26",
+      "hidden": false,
       "id": "2026-01-aaai"
     },
     {
@@ -528,7 +532,28 @@
       ],
       "route": "Seoul > Singapore",
       "tripLabel": "ICAIF 2025",
+      "hidden": false,
       "id": "2025-11-icaif"
+    },
+    {
+      "date": "2026-11-14",
+      "type": "conference",
+      "location": "Università Bocconi",
+      "title": "ICAIF 2026",
+      "titleKr": "",
+      "summary": "2026년 11월 14일부터 17일까지 진행되는 ICAIF 2026에 견학 예정입니다.",
+      "text": "<p>ICAIF 2026 견학 예정<p>",
+      "photos": [],
+      "links": [
+        {
+          "label": "ICAIF 2026 website",
+          "url": "https://icaif2026.org/"
+        }
+      ],
+      "route": "Seoul > Milan",
+      "tripLabel": "ICAIF 2026",
+      "hidden": true,
+      "id": ""
     }
   ],
   "places": {
@@ -543,6 +568,10 @@
     "Gyeongju": [
       35.8531,
       129.227
+    ],
+    "Milan": [
+      45.4669,
+      9.19
     ]
   }
 }

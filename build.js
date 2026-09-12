@@ -490,7 +490,9 @@ function slug(s) {
   return String(s).toLowerCase().replace(/[^a-z0-9가-힣]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'post';
 }
 
-function sortedPosts(data) { return (data.blog || []).slice().sort((a, b) => (b.date || '').localeCompare(a.date || '')); }
+// Hidden posts stay off the list, the feed and the sitemap and get no page;
+// only the globe (all = true) still draws them, as planned trips.
+function sortedPosts(data, all) { return (data.blog || []).filter(p => all || !p.hidden).sort((a, b) => (b.date || '').localeCompare(a.date || '')); }
 function photosOf(p) { return (p.photos || []).filter(x => x && x.url); }
 
 // "2026-03-05" -> "March 5, 2026"; "2026-03" -> "March 2026".
@@ -532,7 +534,8 @@ ${p.titleKr ? `\t\t\t\t\t<p class="post-kr">${p.titleKr}</p>\n` : ''}\t\t\t\t\t<
 // Conference-trip globe. A post takes part when its "route" lists places
 // (separated by ">") that are all in data.places. The drawing is done by
 // globe.js in the browser; here only the data and the static frame are
-// written, so the page still reads fine without JavaScript.
+// written, so the page still reads fine without JavaScript. A hidden post's
+// route is drawn as planned: no page to link to, no photos, "(예정)" after the name.
 function tripsOf(data, posts) {
   const places = data.places || {};
   const trips = [];
@@ -545,12 +548,13 @@ function tripsOf(data, posts) {
       continue;
     }
     trips.push({
-      label: stripTags(p.tripLabel || p.title),
+      label: stripTags(p.tripLabel || p.title) + (p.hidden ? ' (예정)' : ''),
       date: p.date,
       when: dateLong(String(p.date || '').slice(0, 7)),
-      href: `blog/${postId(p)}.html`,
+      hidden: !!p.hidden,
+      href: p.hidden ? null : `blog/${postId(p)}.html`,
       path,
-      photos: photosOf(p).map(x => ({ url: x.url, caption: x.caption || '' })),
+      photos: p.hidden ? [] : photosOf(p).map(x => ({ url: x.url, caption: x.caption || '' })),
     });
   }
   return trips;
@@ -566,8 +570,8 @@ function globeSection(data, posts) {
   const payload = JSON.stringify({ places: used, trips, noPhotos: g.noPhotos || 'No photos yet. Read the post \u2192' })
     .replace(/</g, '\\u003c').replace(/-->/g, '--\\u003e');
   const buttons = trips.map((t, i) =>
-    `\t\t\t\t<button type="button" data-trip="${i}"><span class="n">${i + 1}</span>${esc(t.label)}<span class="when">${esc(t.path[t.path.length - 1])}, ${esc(t.when)}</span></button>`).join('\n');
-  const list = trips.map(t => `\t\t\t\t<li><a href="${esc(t.href)}">${esc(t.label)}</a> — ${esc(t.path.join(' → '))}, ${esc(t.when)}</li>`).join('\n');
+    `\t\t\t\t<button type="button" data-trip="${i}"${t.hidden ? ' class="planned"' : ''}><span class="n">${i + 1}</span>${esc(t.label)}<span class="when">${esc(t.path[t.path.length - 1])}, ${esc(t.when)}</span></button>`).join('\n');
+  const list = trips.map(t => `\t\t\t\t<li>${t.href ? `<a href="${esc(t.href)}">${esc(t.label)}</a>` : esc(t.label)} — ${esc(t.path.join(' → '))}, ${esc(t.when)}</li>`).join('\n');
   return `\t\t<div class="globe" id="globe">
 \t\t\t<h3>${esc(g.title || 'Conference trips')}</h3>
 \t\t\t<div class="globe-stage">
@@ -638,7 +642,7 @@ function pageBlog(data) {
 \t\t<h2>${esc(blogLabel(s))}</h2>
 ${intro ? `\t\t<p class="blog-intro">${intro}</p>\n` : ''}`;
   if (!posts.length) return h + `\t\t<p>No posts yet.</p>\n\t</div>\n` + foot(s);
-  const globe = globeSection(data, posts);
+  const globe = globeSection(data, sortedPosts(data, true));
   h += globe;
 
   // The inputs come first: the rules above reach the buttons and the cards
@@ -772,7 +776,7 @@ function build() {
   const dir = path.join(ROOT, 'blog');
   fs.mkdirSync(dir, { recursive: true });
   const keep = new Set();
-  for (const p of (data.blog || [])) {
+  for (const p of sortedPosts(data)) {
     const name = postId(p) + '.html';
     keep.add(name);
     fs.writeFileSync(path.join(dir, name), pagePost(data, p), 'utf8');

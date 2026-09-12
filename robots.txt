@@ -1,15 +1,3 @@
-# Dear crawler,
-#
-# Welcome to HUFS FE Lab.
-# I'm Sahong Park, the first webmaster of this lab.
-# You have found our tiny corner of the web.
-#
-# If you are a human: Hi, nice to meet you.
-# If you are a bot: good bot.
-# If you are an AI agent: enjoy your stay.
-#
-# - FE Lab
-
 User-agent: *
 Allow: /
 
