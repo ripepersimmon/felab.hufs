@@ -534,7 +534,7 @@ dl.projects dd {
 .cards {
 	display: grid;
 	grid-template-columns: repeat(3, 1fr);
-	gap: 24px;
+	gap: 14px;
 	margin: 14px 0 30px;
 }
 
@@ -542,7 +542,7 @@ dl.projects dd {
 	display: flex;
 	flex-direction: column;
 	border: 1px solid #DDD;
-	border-radius: 4px;
+	border-radius: 0;
 	background: #fff;
 	color: #1A1A1A;
 	overflow: hidden;
