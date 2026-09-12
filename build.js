@@ -324,31 +324,67 @@ ${recent.map(n => `\t\t\t\t<p>${monthShort(n.date)} &mdash; ${markMembers(n.shor
   return h + foot(s);
 }
 
+function personPhoto(p) { return p.photo ? `<img src="${esc(p.photo)}" alt="${esc(p.name)}">` : ''; }
+function memberId(m) { return slug(m.name); }
+
+// The professor's card carries the whole bio. A member's card (small) shows
+// only name, role and interests and links to the member's own page under
+// team/, where the period, email and links are.
 function personCard(p, small) {
-  const photo = p.photo ? `<img src="${esc(p.photo)}" alt="${esc(p.name)}">` : '';
   const H = small ? 'h4' : 'h3';
   const lines = [];
   if (small) {
-    if (p.role || p.period) {
-      const role = p.role ? esc(p.role) : '';
-      const period = p.period ? `<span class="period">${esc(p.period)}</span>` : '';
-      lines.push(`<p>${[role, period].filter(Boolean).join(', ')}</p>`);
-    }
-    if (p.interests) lines.push(`<p>Interests: ${esc(p.interests)}</p>`);
+    if (p.role) lines.push(`<p class="role">${esc(p.role)}</p>`);
+    if (p.interests) lines.push(`<p class="interests">${esc(p.interests)}</p>`);
   } else {
     (p.lines || []).forEach(l => lines.push(`<p>${l}</p>`));
+    if (p.email) lines.push(`<p>Email: <a href="mailto:${esc(p.email)}">${esc(p.email)}</a></p>`);
+    const links = linksHtml(p.links);
+    if (links) lines.push(links);
   }
-  if (p.email) lines.push(`<p>Email: <a href="mailto:${esc(p.email)}">${esc(p.email)}</a></p>`);
-  const links = linksHtml(p.links);
-  if (links) lines.push(links);
   const ind = small ? '\t\t\t\t' : '\t\t\t';
-  return `${ind}<div class="person${small ? ' small' : ''}">
-${ind}\t<div class="photo">${photo}</div>
+  const tag = small ? `a class="person small" href="team/${memberId(p)}.html"` : 'div class="person"';
+  return `${ind}<${tag}>
+${ind}\t<div class="photo">${personPhoto(p)}</div>
 ${ind}\t<div class="bio">
 ${ind}\t\t<${H}>${esc(p.name)}${p.korean ? ` (${esc(p.korean)})` : ''}</${H}>
 ${lines.map(l => `${ind}\t\t${l}`).join('\n')}
 ${ind}\t</div>
-${ind}</div>`;
+${ind}</${small ? 'a' : 'div'}>`;
+}
+
+function pageMember(data, m) {
+  const s = data.site;
+  const id = memberId(m);
+  let h = head(s, 'Team', { base: '../', docTitle: m.name, desc: `${m.name}, ${m.role || 'member'} of the ${stripTags(s.title)} at ${stripTags(s.titleSuffix)}.${m.interests ? ' Interests: ' + m.interests + '.' : ''}`, path: `team/${id}.html`, image: m.photo || null });
+  const role = [m.role ? esc(m.role) : '', m.period ? `<span class="period">${esc(m.period)}</span>` : ''].filter(Boolean).join(', ');
+  const contact = [];
+  if (m.email) contact.push(`<p>Email: <a href="mailto:${esc(m.email)}">${esc(m.email)}</a></p>`);
+  const links = linksHtml(m.links);
+  if (links) contact.push(links);
+  // The lab's publications this member is an author of, newest first.
+  const name = m.name.trim();
+  const pubs = data.publications
+    .filter(p => p.authors.split(',').some(a => a.trim().replace(/[†*]$/, '').trim() === name))
+    .sort((a, b) => b.year - a.year);
+  h += `
+\t<div class="section">
+\t\t<p class="crumb"><a href="team.html">&larr; Team</a></p>
+\t\t<article class="post single person-detail" id="${esc(id)}">
+\t\t\t<div class="photo">${personPhoto(m)}</div>
+\t\t\t<h2 class="post-title">${esc(m.name)}${m.korean ? ` <span class="post-kr">(${esc(m.korean)})</span>` : ''}</h2>
+${role ? `\t\t\t<p class="role">${role}</p>\n` : ''}${m.interests ? `\t\t\t<h5>Interests</h5>\n\t\t\t<p>${esc(m.interests)}</p>\n` : ''}${contact.length ? `\t\t\t<h5>Contact</h5>\n${contact.map(c => `\t\t\t${c}`).join('\n')}\n` : ''}`;
+  if (pubs.length) {
+    h += `\t\t\t<h5>Publications</h5>
+\t\t\t<ul class="pub-list">
+${pubs.map(p => '\t\t\t\t' + pubLi(p, data, data.citations)).join('\n')}
+\t\t\t</ul>
+`;
+  }
+  h += `\t\t</article>
+\t</div>
+`;
+  return h + foot(s);
 }
 
 function pageTeam(data) {
@@ -791,7 +827,19 @@ function build() {
   for (const f of fs.readdirSync(dir)) {
     if (f.endsWith('.html') && !keep.has(f)) fs.unlinkSync(path.join(dir, f));
   }
-  const html = Object.keys(pages).concat([...keep].map(f => 'blog/' + f));
+  // Likewise one page per member under team/.
+  const tdir = path.join(ROOT, 'team');
+  fs.mkdirSync(tdir, { recursive: true });
+  const tkeep = new Set();
+  for (const m of data.members) {
+    const name = memberId(m) + '.html';
+    tkeep.add(name);
+    fs.writeFileSync(path.join(tdir, name), pageMember(data, m), 'utf8');
+  }
+  for (const f of fs.readdirSync(tdir)) {
+    if (f.endsWith('.html') && !tkeep.has(f)) fs.unlinkSync(path.join(tdir, f));
+  }
+  const html = Object.keys(pages).concat([...keep].map(f => 'blog/' + f), [...tkeep].map(f => 'team/' + f));
   const extra = [];
   fs.writeFileSync(path.join(ROOT, 'felab.bib'), bibFile(data), 'utf8');
   extra.push('felab.bib');
