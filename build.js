@@ -381,6 +381,14 @@ ${pubs.map(p => '\t\t\t\t' + pubLi(p, data, data.citations)).join('\n')}
 \t\t\t</ul>
 `;
   }
+  // Papers the member is reading at the moment: one hand-written HTML line each.
+  if ((m.reading || []).length) {
+    h += `\t\t\t<h5>Currently Reading</h5>
+\t\t\t<ul class="pub-list">
+${m.reading.map(r => `\t\t\t\t<li>${r}</li>`).join('\n')}
+\t\t\t</ul>
+`;
+  }
   h += `\t\t</article>
 \t</div>
 `;

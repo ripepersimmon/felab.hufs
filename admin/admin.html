@@ -103,6 +103,7 @@ const SECTIONS = [
     { k: 'interests', l: 'Interests' },
     { k: 'email', l: 'Email' },
     { k: 'links', l: 'Links (one per line: type url — type is linkedin, github, scholar, or website)', t: 'links' },
+    { k: 'reading', l: 'Currently reading (one paper per line, HTML allowed; empty hides the section)', t: 'lines', tall: true },
   ], help: 'Members are grouped under their group heading in the order listed here. Names here are matched against publication author lists to underline lab members.' },
   { id: 'research', label: 'Research', kind: 'list', path: 'research', legend: r => r.title || 'New area', fields: [
     { k: 'title', l: 'Title' },
