@@ -33,11 +33,12 @@ jobs:
         run: node build.js
       - name: Collect public files
         run: |
-          mkdir -p _site/images _site/blog
+          mkdir -p _site/images _site/blog _site/team
           cp *.html style.css globe.js favicon.ico felab.bib _site/
           cp sitemap.xml robots.txt feed.xml _site/
           cp -r images/. _site/images/
           cp -r blog/. _site/blog/
+          cp -r team/. _site/team/
           touch _site/.nojekyll
       - uses: actions/upload-pages-artifact@v3
         with:
