@@ -434,7 +434,8 @@
       "route": "Seoul > Gyeongju",
       "tripLabel": "2026 춘계공동학술대회",
       "hidden": false,
-      "id": "2026-06-kiie"
+      "id": "2026-06-kiie",
+      "logo": ""
     },
     {
       "date": "2025-11-06",
@@ -496,7 +497,8 @@
       "route": "Seoul > Singapore",
       "tripLabel": "AAAI-26",
       "hidden": false,
-      "id": "2026-01-aaai"
+      "id": "2026-01-aaai",
+      "logo": "images/blog/logos/aaai26.png"
     },
     {
       "date": "2025-11-15",
@@ -533,7 +535,8 @@
       "route": "Seoul > Singapore",
       "tripLabel": "ICAIF 2025",
       "hidden": false,
-      "id": "2025-11-icaif"
+      "id": "2025-11-icaif",
+      "logo": "images/blog/logos/icaif25.png"
     },
     {
       "date": "2026-11-14",
@@ -553,7 +556,8 @@
       "route": "Seoul > Milan",
       "tripLabel": "ICAIF 2026",
       "hidden": true,
-      "id": ""
+      "id": "",
+      "logo": "images/blog/logos/icaif26.svg"
     }
   ],
   "places": {

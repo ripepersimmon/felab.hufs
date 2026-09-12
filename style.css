@@ -904,6 +904,36 @@ details.bib > pre {
 	line-height: 1.4;
 }
 
+/* The conference logo, hung like a banner over the top of the globe: logo on
+   the left, the trip's name beside it. */
+.gphoto.glogo {
+	width: auto;
+	max-width: 280px;
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 8px 16px 8px 10px;
+}
+
+.gphoto.glogo img {
+	aspect-ratio: auto;
+	width: auto;
+	max-width: 160px;
+	height: 44px;
+	object-fit: contain;
+	background: none;
+}
+
+.gphoto.glogo figcaption {
+	padding: 0;
+	font-style: italic;
+	font-size: 0.85em;
+	white-space: nowrap;
+	color: #B4262A;
+}
+
+.gphoto.glogo.planned figcaption { color: #8B95A1; }
+
 .gphoto:hover { border-color: #0B3D6E; z-index: 2; }
 
 /* Zoom buttons in the corner of the stage; the wheel and pinch do the same. */

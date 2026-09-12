@@ -238,9 +238,10 @@ function draw() {
     }
   }
 
-  // Name of the hovered or selected trip, at the top of its arc.
+  // Name of the hovered or selected trip, at the top of its arc. A selected
+  // trip with a logo has its name on the logo card instead.
   var lab = hover || selected;
-  if (lab) {
+  if (lab && !(lab === selected && lab.logo)) {
     p = proj(lab.mid);
     if (p.vis) {
       ctx.font = 'italic 13px ' + FONT;
@@ -486,7 +487,18 @@ function showPhotos(t) {
   hidePhotos(true);
   var list = (t.photos || []).slice(0, SLOTS.length);
   var d = proj(t.dest);
-  if (!list.length) {
+  // The conference logo, a banner hung over the top of the globe; it links to the post.
+  if (t.logo) {
+    var lf = el('figure', 'gphoto glogo' + (t.hidden ? ' planned' : ''));
+    var la = el(t.href ? 'a' : 'span'); if (t.href) la.href = t.href;
+    var li = el('img'); li.src = t.logo; li.alt = t.label;
+    la.appendChild(li); lf.appendChild(la);
+    var lc = el('figcaption'); lc.textContent = t.label; lf.appendChild(lc);
+    lf._center = true;
+    figs.push(place(lf, 0, d));
+    lf.style.setProperty('--r', '0deg');
+  }
+  if (!list.length && !t.logo) {
     var f = el('figure', 'gphoto gnote');
     // A planned trip has no page yet: just its name, "(예정)" included.
     var a = el(t.href ? 'a' : 'span');
@@ -518,6 +530,13 @@ function positionPhotos() {
   if (!figs.length || narrow()) return;
   var d = selected ? proj(selected.dest) : null;
   figs.forEach(function (f) {
+    if (f._center) {
+      // Hung across the top of the stage, clear of the routes.
+      f.style.setProperty('--x', Math.round(CX - f.offsetWidth / 2) + 'px');
+      f.style.setProperty('--y', '10px');
+      if (d) { f.style.setProperty('--x0', Math.round(d.x) + 'px'); f.style.setProperty('--y0', Math.round(d.y) + 'px'); }
+      return;
+    }
     var s = SLOTS[f._slot % SLOTS.length];
     var w = f.offsetWidth || 180;
     var side = Math.max(W / 2 - R - 28, 210);   // free width beside the globe (over it when zoomed in)

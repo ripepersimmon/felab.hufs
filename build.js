@@ -535,7 +535,9 @@ ${p.titleKr ? `\t\t\t\t\t<p class="post-kr">${p.titleKr}</p>\n` : ''}\t\t\t\t\t<
 // (separated by ">") that are all in data.places. The drawing is done by
 // globe.js in the browser; here only the data and the static frame are
 // written, so the page still reads fine without JavaScript. A hidden post's
-// route is drawn as planned: no page to link to, no photos, "(예정)" after the name.
+// route is drawn as planned: no page to link to, no photos, "(예정)" after the
+// name. A post's "logo" (the conference's logo or banner) is shown at the
+// centre of the globe when its route is picked, planned or not.
 function tripsOf(data, posts) {
   const places = data.places || {};
   const trips = [];
@@ -554,6 +556,7 @@ function tripsOf(data, posts) {
       hidden: !!p.hidden,
       href: p.hidden ? null : `blog/${postId(p)}.html`,
       path,
+      logo: p.logo || null,
       photos: p.hidden ? [] : photosOf(p).map(x => ({ url: x.url, caption: x.caption || '' })),
     });
   }
@@ -751,8 +754,12 @@ ${urls}
 `;
 }
 
+// The comment block at the top of the existing robots.txt (a note to whoever
+// reads it) is kept as written there; only the rules under it are regenerated.
 function robotsTxt(data) {
-  return `User-agent: *\nAllow: /\n\nSitemap: ${abs(data.site, 'sitemap.xml')}\n`;
+  let note = '';
+  try { note = (fs.readFileSync(path.join(ROOT, 'robots.txt'), 'utf8').match(/^(#.*\r?\n)+/) || [''])[0]; } catch (e) {}
+  return `${note}${note ? '\n' : ''}User-agent: *\nAllow: /\n\nSitemap: ${abs(data.site, 'sitemap.xml')}\n`;
 }
 
 function build() {
