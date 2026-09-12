@@ -126,14 +126,6 @@ const SECTIONS = [
     { k: 'note', l: 'Note shown after the venue, e.g. JCR Q1' },
     { k: 'links', l: 'Links (one per line: label url — e.g. paper https://doi.org/...)', t: 'pairs' },
   ], help: 'Publications are grouped by year in the order listed here. Theses go under a separate heading. The button below looks up how often each paper has been cited (OpenAlex) and stores the counts in data/citations.json.', fetchCitations: true },
-  { id: 'courses', label: 'Courses', kind: 'list', path: 'courses', legend: c => (c.semester ? c.semester + ' — ' : '') + (c.title || 'New course'), fields: [
-    { k: 'semester', l: 'Semester', g: 'grid3' },
-    { k: 'title', l: 'Course', g: 'grid3' },
-    { k: 'level', l: 'Level', g: 'grid3' },
-    { k: 'code', l: 'Course code (optional)' },
-  ], extra: [
-    { path: 'coursesIntro', k: '', l: 'Intro text above the table (HTML allowed)', t: 'html' },
-  ], help: 'The button below replaces this list with the courses found for the professor in the HUFS timetable system (wis.hufs.ac.kr) and rebuilds the site. Edit fetch-courses.js to change the instructor name or department code.', fetchCourses: true },
   { id: 'news', label: 'News', kind: 'list', path: 'news', legend: n => (n.date || '') + ' ' + (n.short || ''), fields: [
     { k: 'date', l: 'Month (YYYY-MM)', g: 'grid2' },
     { k: 'short', l: 'Short version for the Home sidebar', g: 'grid2' },
@@ -318,17 +310,6 @@ function renderAll() {
           setStatus('Password changed.', 'ok'); cur.value = ''; nxt.value = '';
         } catch (e) { setStatus(e.message, 'err'); }
       } }, 'Change password'));
-    }
-    if (sec.fetchCourses) {
-      p.append(el('p', {}, el('button', { class: 'add', type: 'button', onclick: async () => {
-        if (!confirm('Replace the course list with data from the HUFS timetable system?')) return;
-        setStatus('Fetching courses from wis.hufs.ac.kr…');
-        try {
-          const j = await api('/api/fetch-courses');
-          DATA = await (await fetch('/api/data')).json(); renderAll(); show('courses');
-          setStatus(`Fetched ${j.count} courses and rebuilt the site.`, 'ok');
-        } catch (e) { setStatus(e.message, 'err'); }
-      } }, 'Fetch from HUFS timetable')));
     }
     if (sec.fetchCitations) {
       p.append(el('p', {}, el('button', { class: 'add', type: 'button', onclick: async () => {

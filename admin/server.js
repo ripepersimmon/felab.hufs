@@ -168,9 +168,9 @@ ${msg ? `<p class="err">${msg}</p>` : ''}
 }
 
 function validateData(d) {
-  const need = ['site', 'professor', 'members', 'research', 'projects', 'publications', 'courses', 'news'];
+  const need = ['site', 'professor', 'members', 'research', 'projects', 'publications', 'news'];
   for (const k of need) if (!(k in d)) return `missing "${k}"`;
-  for (const k of ['members', 'research', 'projects', 'publications', 'courses', 'news']) if (!Array.isArray(d[k])) return `"${k}" must be a list`;
+  for (const k of ['members', 'research', 'projects', 'publications', 'news']) if (!Array.isArray(d[k])) return `"${k}" must be a list`;
   for (const n of d.news) if (!/^\d{4}-\d{2}$/.test(n.date || '')) return `news date must be YYYY-MM (got "${n.date}")`;
   for (const p of (d.blog || [])) if (!/^\d{4}-\d{2}-\d{2}$/.test(p.date || '')) return `blog date must be YYYY-MM-DD (got "${p.date}")`;
   for (const p of d.publications) if (!p.title) return 'a publication has no title';
@@ -264,13 +264,6 @@ async function handle(req, res) {
     if (String(d.next) === DEFAULT_PASSWORD) return json(res, 400, { error: 'choose a password other than the initial one' });
     setPassword(String(d.next));
     return json(res, 200, { ok: true });
-  }
-  if (p === '/api/fetch-courses' && req.method === 'POST') {
-    try {
-      const { updateSite } = require('../fetch-courses.js');
-      const courses = await updateSite();
-      return json(res, 200, { ok: true, count: courses.length, courses });
-    } catch (e) { return json(res, 500, { error: e.message }); }
   }
   if (p === '/api/fetch-citations' && req.method === 'POST') {
     try {

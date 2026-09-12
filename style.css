@@ -198,29 +198,6 @@ a:hover { border-bottom-color: #0B3D6E; }
 	margin: 0 0 6px;
 }
 
-table.plain {
-	border-collapse: collapse;
-	width: 100%;
-	font-size: 0.95em;
-}
-
-table.plain th,
-table.plain td {
-	text-align: left;
-	padding: 8px 10px 8px 0;
-	border-bottom: 1px solid #E5E5E5;
-	vertical-align: top;
-}
-
-table.plain th {
-	font-weight: normal;
-	color: #555;
-	font-size: 0.85em;
-	letter-spacing: 1px;
-	text-transform: uppercase;
-	border-bottom: 1px solid #1A1A1A;
-}
-
 dl.news dt {
 	margin-top: 14px;
 	color: #0B3D6E;
@@ -697,11 +674,6 @@ dl.projects dd {
 
 .post-links li {
 	margin-bottom: 4px;
-}
-
-/* Repeat mark in the Courses semester column */
-table.plain .rep {
-	color: #AAA;
 }
 
 /* Publications toolbar: year jump links and totals */

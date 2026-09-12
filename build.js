@@ -13,7 +13,6 @@ const MENU = [
   ['research.html', 'Research'],
   ['projects.html', 'Projects'],
   ['publications.html', 'Publications'],
-  ['courses.html', 'Courses'],
   ['news.html', 'News'],
 ];
 
@@ -465,33 +464,6 @@ ${theses.map(p => '\t\t\t' + pubLi(p, data, cites)).join('\n')}
   return h + foot(s);
 }
 
-// Course rows. Only the first row of a run of the same semester is labelled;
-// the rest show a repeat mark so the semester groups read at a glance.
-function semesterRows(courses) {
-  let prev = null;
-  return courses.map(c => {
-    const cell = c.semester === prev ? '<span class="rep">--</span>' : esc(c.semester);
-    prev = c.semester;
-    return `\t\t\t<tr><td>${cell}</td><td>${esc(c.title)}</td><td>${esc(c.level)}</td></tr>`;
-  }).join('\n');
-}
-
-function pageCourses(data) {
-  const s = data.site;
-  let h = head(s, 'Courses', { desc: data.coursesIntro || '', path: 'courses.html' });
-  h += `
-\t<div class="section">
-\t\t<h2>Courses</h2>
-\t\t<p>${data.coursesIntro || ''}</p>
-\t\t<table class="plain">
-\t\t\t<tr><th>Semester</th><th>Course</th><th>Level</th></tr>
-${semesterRows(data.courses)}
-\t\t</table>
-\t</div>
-`;
-  return h + foot(s);
-}
-
 function pageNews(data) {
   const s = data.site;
   let h = head(s, 'News', { desc: `News from the ${stripTags(s.title)}. ${data.news.slice(0, 2).map(n => stripTags(n.short || n.text)).join(' ')}`, path: 'news.html' });
@@ -790,7 +762,6 @@ function build() {
     'research.html': pageResearch,
     'projects.html': pageProjects,
     'publications.html': pagePublications,
-    'courses.html': pageCourses,
     'news.html': pageNews,
     'blog.html': pageBlog,
   };

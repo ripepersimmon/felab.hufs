@@ -311,63 +311,6 @@
       "links": []
     }
   ],
-  "courses": [
-    {
-      "semester": "Fall 2026",
-      "title": "Data Management and SQL (데이터관리와SQL)",
-      "level": "Undergraduate, 2nd year",
-      "code": "M02209101"
-    },
-    {
-      "semester": "Fall 2026",
-      "title": "Learning Python Statistics (파이썬통계학습)",
-      "level": "Undergraduate, 2nd year",
-      "code": "M02203101"
-    },
-    {
-      "semester": "Fall 2026",
-      "title": "Finance & AI Capstone (Advanced) (Finance&AI융합캡스톤심화)",
-      "level": "Undergraduate, 4th year",
-      "code": "M02408101"
-    },
-    {
-      "semester": "Spring 2026",
-      "title": "Investment science and Optimization (투자론과최적화)",
-      "level": "Undergraduate, 3rd year",
-      "code": "M02308101"
-    },
-    {
-      "semester": "Spring 2026",
-      "title": "Finance and AI Capstone (Finance&AI융합캡스톤)",
-      "level": "Undergraduate, 4th year",
-      "code": "M02403101"
-    },
-    {
-      "semester": "Fall 2025",
-      "title": "Investment science and Optimization (투자론과최적화)",
-      "level": "Undergraduate, 3rd year",
-      "code": "M02308101"
-    },
-    {
-      "semester": "Fall 2025",
-      "title": "Convex Optimization (컨벡스최적화)",
-      "level": "Undergraduate, 4th year",
-      "code": "M02402101"
-    },
-    {
-      "semester": "Spring 2025",
-      "title": "Learning Python Statistics (파이썬통계학습)",
-      "level": "Undergraduate, 2nd year",
-      "code": "M02203101"
-    },
-    {
-      "semester": "Spring 2025",
-      "title": "Data Mining (데이터마이닝)",
-      "level": "Undergraduate, 3rd year",
-      "code": "M02301101"
-    }
-  ],
-  "coursesIntro": "Courses taught by Prof. Kong in the Division of Finance &amp; AI, HUFS Global Campus. The list is taken from the university timetable system.",
   "news": [
     {
       "date": "2026-08",
