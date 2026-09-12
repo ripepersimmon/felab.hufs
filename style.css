@@ -1038,4 +1038,6 @@ details.bib > pre {
 		transition: opacity 0.35s;
 	}
 	.gphoto.in, .gphoto.out { transform: none; }
+	/* The logo banner takes a row of its own above the photos. */
+	.gphoto.glogo { width: 100%; max-width: none; justify-content: center; }
 }
