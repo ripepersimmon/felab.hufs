@@ -466,7 +466,7 @@ dl.projects dd {
 	display: inline-block;
 	padding: 0 8px;
 	border: 1px solid #B7C6D8;
-	border-radius: 10px;
+	border-radius: 0;
 	color: #0B3D6E;
 }
 
